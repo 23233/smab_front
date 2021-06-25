@@ -16,22 +16,40 @@ const req = {
   changePassword: (id: string, password: string) => {
     return Req.post(`${v}/change_password`, {
       data: {
-        id: id,
+        id: String(id),
         password: password,
       },
     });
   },
-  // 获取所有权限
-  getAllPer: () => {
-    return Req.get(`${v}/all_permissions`);
-  },
   // 获取用户权限
-  getUserPer:() => {
+  getUserPer: (uid?: string) => {
     return Req.get(`${v}/user_permissions`);
   },
   // 获取用户
-  getUserList:() => {
+  getUserList: () => {
     return Req.get(`${v}/self_users`);
+  },
+  // 新增用户
+  addUser: (data: any) => {
+    return Req.post(`${v}/self_users`, {
+      data: data,
+    });
+  },
+  // 修改用户基本信息
+  editUserBase: (data: any) => {
+    return Req.put(`${v}/self_users`, {
+      data: data,
+    });
+  },
+  // 修改用户权限
+  editUserPermission: (data: any) => {
+    return Req.put(`${v}/self_users_permissions`, {
+      data: data,
+    });
+  },
+  // 删除用户
+  removeUser: (id: string) => {
+    return Req.delete(`${v}/self_users/${id}`);
   },
 };
 

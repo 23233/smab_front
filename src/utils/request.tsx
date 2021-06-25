@@ -49,8 +49,7 @@ const errorHandler = async (error: any) => {
           content = res[Object.keys(res)[0]].toString();
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
     const { status, url } = response;
     // 未登录或登录状态过期
     if (response.status === 401) {
@@ -62,7 +61,7 @@ const errorHandler = async (error: any) => {
           redirect: window.location.pathname,
         },
       });
-      return;
+      return error;
     }
     notification.error({
       message: `请求错误 ${status}`,
@@ -75,7 +74,7 @@ const errorHandler = async (error: any) => {
     });
   }
 
-  return response;
+  return error;
 };
 /**
  * 配置request请求时的默认参数

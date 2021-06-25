@@ -3,14 +3,14 @@ import { useModel, history, Link } from 'umi';
 import { Menu, Dropdown, Avatar, message } from 'antd';
 import Router from '../../router';
 import { LogoutOutlined, LockOutlined } from '@ant-design/icons';
-import CollectionCreateForm from '../dataShow/dataForm';
+import CommForm from '../../components/dataForm';
 
 import BasicLayout from '@ant-design/pro-layout';
 import { useRequest } from 'ahooks';
 import Fetch from '../../utils/fetch';
+import ChangePasswordModal from '../../components/changePassword';
 
-
-export default function(props) {
+export default function (props) {
   const { userToken, userInfo, signout } = useModel('useAuthModel');
   const [pShow, setPShow] = useState(false);
 
@@ -24,20 +24,12 @@ export default function(props) {
     });
   }
 
-  const { run, loading } = useRequest(Fetch.changePassword, {
-    manual: true,
-    onSuccess: (resp) => {
-      if (resp.response.status === 200) {
-        message.success('变更密码成功');
-        setPShow(false);
-      }
-    },
-  });
-
-
   const menuDataRender = (menuList) => {
     return menuList.map((item) => {
-      return { ...item, children: item.children ? menuDataRender(item.children) : [] };
+      return {
+        ...item,
+        children: item.children ? menuDataRender(item.children) : [],
+      };
     });
   };
 
@@ -60,11 +52,11 @@ export default function(props) {
   const rightContentRender = (HeaderViewProps) => {
     const menuHeaderDropdown = (
       <Menu selectedKeys={[]} onClick={rightMenusClick}>
-        <Menu.Item key='changePassword'>
+        <Menu.Item key="changePassword">
           <LockOutlined />
           变更密码
         </Menu.Item>
-        <Menu.Item key='logout'>
+        <Menu.Item key="logout">
           <LogoutOutlined />
           退出登录
         </Menu.Item>
@@ -79,48 +71,28 @@ export default function(props) {
     );
   };
 
-  const passwordFields = {
-    fields: [{
-      name: 'Password',
-      types: 'string',
-      map_name: 'password',
-      xorm_tags: '',
-      sp_tags: '',
-    }],
-  };
-
-  const onPasswordChangeCreate = values => {
-    run(userInfo.id,values.password);
-  };
-
   return (
-    <BasicLayout title={window?.smab?.name}
-                 {...props}
-                 breadcrumbRender={(routers = []) => [
-                   {
-                     path: '/',
-                     breadcrumbName: '首页',
-                   },
-                   ...routers,
-                 ]}
-                 menuDataRender={menuDataRender}
-                 menuItemRender={menuItemRender}
-                 rightContentRender={rightContentRender}
+    <BasicLayout
+      title={window?.smab?.name}
+      {...props}
+      breadcrumbRender={(routers = []) => [
+        {
+          path: '/',
+          breadcrumbName: '首页',
+        },
+        ...routers,
+      ]}
+      menuDataRender={menuDataRender}
+      menuItemRender={menuItemRender}
+      rightContentRender={rightContentRender}
     >
       {props.children}
 
-
-      {
-        pShow && <CollectionCreateForm
-          fieldsList={passwordFields}
-          initValues={{}}
-          onCreate={onPasswordChangeCreate}
-          onCancel={() => setPShow(false)}
-        />
-      }
-
-
+      <ChangePasswordModal
+        userId={userInfo?.id}
+        setShow={setPShow}
+        show={pShow}
+      />
     </BasicLayout>
   );
-
 }
