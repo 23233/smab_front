@@ -5,11 +5,7 @@ class RestApiGen {
   url: string;
 
   constructor(url: string) {
-    if (url.endsWith('/')) {
-      this.url = url.slice(0, url.length - 1);
-    } else {
-      this.url = url;
-    }
+    this.url = this.changeUrl(url);
   }
 
   get = (params: object) => {
@@ -53,6 +49,18 @@ class RestApiGen {
             : '__' + val + '__',
       },
     });
+  };
+
+  // 变更url
+  private changeUrl = (url: string): string => {
+    let u = url;
+    if (u.endsWith('/')) {
+      return u.slice(0, url.length - 1);
+    }
+    return u;
+  };
+  changeUri = (url: string) => {
+    this.url = this.changeUrl(url);
   };
 }
 

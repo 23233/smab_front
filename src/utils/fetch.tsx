@@ -5,6 +5,8 @@ const p = `${prefix}${(window as any)?.smab?.prefix}`;
 
 const v = p + '/v';
 
+export const C = v + '/c';
+
 const req = {
   // 登录
   accountLogin: (data: loginRegReq) => {
@@ -50,6 +52,10 @@ const req = {
   // 删除用户
   removeUser: (id: string) => {
     return Req.delete(`${v}/self_users/${id}`);
+  },
+  // 获取模型信息
+  getModelInfo: (name: string) => {
+    return Req.get(`${v}/get_model/${name}`);
   },
 };
 

@@ -7,6 +7,13 @@ import AddUser from '@/components/addUser';
 import ChangePasswordModal from '@/components/changePassword';
 import EditUserBaseModal from '@/components/editUserBase';
 import EditPermissionsModal from '@/components/editPermissions';
+import {
+  DeleteOutlined,
+  DiffOutlined,
+  EditOutlined,
+  LockOutlined,
+  UnlockOutlined,
+} from '@ant-design/icons';
 
 const v = () => {
   const { userInfo, allPer, userPer } = useModel('useAuthModel');
@@ -89,14 +96,23 @@ const v = () => {
     render: (text: string, record: any) => {
       return (
         <Space size="middle">
-          <a onClick={() => passwordShow(record)}>变更密码</a>
-          <a onClick={() => changeInfoShow(record)}>变更信息</a>
-          <a onClick={() => changePerShow(record)}>变更权限</a>
+          <UnlockOutlined
+            title={'变更密码'}
+            onClick={() => passwordShow(record)}
+          />
+          <EditOutlined
+            onClick={() => changeInfoShow(record)}
+            title={'变更信息'}
+          />
+          <DiffOutlined
+            onClick={() => changePerShow(record)}
+            title={'变更权限'}
+          />
           <Popconfirm
             title={'确认删除用户吗?'}
             onConfirm={() => runDeleteUser(record)}
           >
-            <a>删除用户</a>
+            <DeleteOutlined title={'删除用户'} />
           </Popconfirm>
         </Space>
       );
@@ -140,7 +156,7 @@ const v = () => {
 
   return (
     <div>
-      <div>
+      <div className={'mb-2'}>
         <Space>
           <Button onClick={() => setShow(true)}>新增用户</Button>
           <Button onClick={() => run()}>刷新</Button>

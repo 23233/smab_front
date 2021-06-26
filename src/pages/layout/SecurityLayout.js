@@ -3,11 +3,9 @@ import { useModel, history, Link } from 'umi';
 import { Menu, Dropdown, Avatar, message } from 'antd';
 import Router from '../../router';
 import { LogoutOutlined, LockOutlined } from '@ant-design/icons';
-import CommForm from '../../components/dataForm';
 
 import BasicLayout from '@ant-design/pro-layout';
-import { useRequest } from 'ahooks';
-import Fetch from '../../utils/fetch';
+
 import ChangePasswordModal from '../../components/changePassword';
 
 export default function (props) {

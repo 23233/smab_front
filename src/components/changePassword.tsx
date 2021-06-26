@@ -2,7 +2,7 @@ import React from 'react';
 import { useRequest } from 'ahooks';
 import Fetch from '@/utils/fetch';
 import { message } from 'antd';
-import CommForm from '@/components/dataForm';
+import CommForm from '@/components/form/dataForm';
 import { Rule } from 'rc-field-form/lib/interface';
 
 interface p {

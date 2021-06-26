@@ -14,7 +14,6 @@ const AllPerSelect: React.FC<p> = ({ onChange, ...props }) => {
 
   useEffect(() => {
     if (!!userPer) {
-      console.log('userPer', userPer);
       setTreeData(userPer);
     }
   }, [userPer]);

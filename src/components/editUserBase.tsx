@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import CommForm, { field } from '@/components/dataForm';
+import CommForm, { field } from '@/components/form/dataForm';
 import { useModel } from '@@/plugin-model/useModel';
 import { Form, message } from 'antd';
 import AllPerSelect from '@/components/showAllPer';

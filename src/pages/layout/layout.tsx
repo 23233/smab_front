@@ -2,7 +2,7 @@ import React from 'react';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/es/locale/zh_CN';
 import { Helmet } from 'umi';
-
+import './global.less';
 
 export default (props: any) => {
   return (
@@ -13,4 +13,4 @@ export default (props: any) => {
       {props.children}
     </ConfigProvider>
   );
-}
+};

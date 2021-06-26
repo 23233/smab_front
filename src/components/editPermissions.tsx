@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import CommForm, { field } from '@/components/dataForm';
+import CommForm, { field, formItemLayout } from '@/components/form/dataForm';
 import { useModel } from '@@/plugin-model/useModel';
 import { Form, message } from 'antd';
 import AllPerSelect from '@/components/showAllPer';
@@ -55,6 +55,7 @@ const EditPermissionsModal: React.FC<p> = ({
           onCancel={() => setShow(false)}
         >
           <Form.Item
+            {...formItemLayout}
             name={'permissions'}
             label={'权限'}
             rules={[

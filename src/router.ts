@@ -60,13 +60,12 @@ export const Routes = [
           {
             path: ROUTERS.model,
             name: '模型',
-            component: './Welcome',
+            component: './model/index',
           },
         ],
       },
     ],
   },
-
 
   {
     component: './404',

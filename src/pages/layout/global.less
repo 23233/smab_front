@@ -1,0 +1,110 @@
+/* purgecss start ignore */
+@tailwind base;
+
+// 同时引入tailwind和ant ant的图标对齐会出现问题 顺序不能变
+.anticon {
+  font-size: 14px;
+
+  svg {
+    margin-bottom: 2px;
+  }
+}
+
+@tailwind components;
+/* purgecss end ignore */
+@tailwind utilities;
+
+// 按钮点击特效
+.btn_scale {
+  transition: all 0.12s ease-out;
+
+  &:focus,
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.btn_scale_big {
+  transition: all 0.12s ease-out;
+
+  &:focus,
+  &:active {
+    transform: scale(1.35);
+  }
+}
+
+// 弹窗背景
+.bg-mask {
+  overflow: hidden;
+
+  &:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+}
+
+.no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.icon-mb {
+  margin-bottom: 3px;
+}
+
+.z-45 {
+  z-index: 45;
+}
+
+.z-60 {
+  z-index: 60;
+}
+
+.z-70 {
+  z-index: 70;
+}
+
+.z-80 {
+  z-index: 80;
+}
+
+.z-90 {
+  z-index: 90;
+}
+
+.z-100 {
+  z-index: 100;
+}
+
+.z-200 {
+  z-index: 200;
+}
+
+.z-normal {
+  z-index: 500;
+}
+
+.z-max {
+  z-index: 9999;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fadeIn {
+  animation: 0.15s fadeIn;
+}
