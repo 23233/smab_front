@@ -28,6 +28,7 @@
     "babel-plugin-transform-remove-console": "^6.9.4",
     "lodash": "^4.17.21",
     "query-string": "^7.0.1",
+    "react-json-view": "^1.21.3",
     "umi": "^3.4.25"
   },
   "devDependencies": {

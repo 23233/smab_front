@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Moment from 'moment';
+import _ from 'lodash';
 import {
   Button,
   Modal,
@@ -38,6 +39,7 @@ export interface field {
   rules?: Rule;
   placeholder?: string;
   slice?: string;
+  initKey?: string; // 修改时比对用
 }
 
 interface kv {
@@ -70,6 +72,14 @@ export const formItemLayoutWithOutLabel = {
     sm: { span: 20, offset: 4 },
   },
 };
+
+const formItemAddBtnWithOutLabel = {
+  wrapperCol: {
+    xs: { span: 16, offset: 0 },
+    sm: { span: 8, offset: 4 },
+  },
+};
+
 const CommForm: React.FC<p> = ({
   onCreate,
   onCancel,
@@ -82,10 +92,25 @@ const CommForm: React.FC<p> = ({
 }) => {
   const [form] = Form.useForm();
 
+  const flattenKeys: (obj: any, path?: any[]) => { [p: string]: any } = (
+    obj: any,
+    path = [],
+  ) =>
+    !_.isObject(obj)
+      ? { [path.join('.')]: obj }
+      : _.reduce(
+          obj,
+          (cum, next, key) => _.merge(cum, flattenKeys(next, [...path, key])),
+          {},
+        );
+
   let initialValues = {} as any;
   if (!isAction && !!initValues) {
-    initialValues = initValues;
+    initialValues = flattenKeys(initValues);
+
     fieldsList.map((d, i) => {
+      // 判断是否存在
+
       if (['time.Time', 'time'].includes(d.types)) {
         initialValues[d.map_name] = Moment(initValues[d.map_name]);
       } else if (['bool'].includes(d.types)) {
@@ -268,7 +293,7 @@ const CommForm: React.FC<p> = ({
                   </div>
                 </Form.Item>
               ))}
-              <Form.Item>
+              <Form.Item {...formItemAddBtnWithOutLabel}>
                 <Button
                   type="dashed"
                   onClick={() => add()}

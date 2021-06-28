@@ -1,10 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { useRequest } from 'ahooks';
+import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
 import Fetch, { C } from '@/utils/fetch';
 import RestApiGen, { getResultFormat } from '@/utils/restApiGen';
 import { uniqBy } from 'lodash';
-import { Button, message, Space, Table, TableColumnsType } from 'antd';
+import {
+  Button,
+  message,
+  Popconfirm,
+  Space,
+  Table,
+  TableColumnsType,
+  Tag,
+} from 'antd';
 import CommForm, { field } from '@/components/form/dataForm';
+import {
+  CompressOutlined,
+  DeleteOutlined,
+  DiffOutlined,
+  EditOutlined,
+  UnlockOutlined,
+} from '@ant-design/icons';
+import { openDrawerFields } from '@/components/drawShowField';
+import useRealLocation from '@/components/useRealLocation';
+import useUrlState from '@ahooksjs/use-url-state';
+import { openDrawerEditFields } from '@/components/drawEditField';
 
 interface p {
   modelName: string;
@@ -15,6 +34,8 @@ interface fieldInfo {
   map_name: string;
   full_name: string;
   full_map_name: string;
+  params_key: string;
+  level: string;
   kind: string;
   bson: Array<string>;
   types: string;
@@ -40,11 +61,46 @@ interface modelInfo {
 
 const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   const [data, setData] = useState<Array<any>>([]);
-  const [page, setPage] = useState<number>(1);
+  const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
-  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [total, setTotal] = useState<number>(10);
   const [modelInfo, setModelInfo] = useState<modelInfo>();
   const [show, setShow] = useState<boolean>(false); // 新增
+
+  // 把参数变化保留到url上
+  const location = useRealLocation();
+  const [uriState, setUriState] = useUrlState(undefined, {
+    navigateMode: 'replace',
+  });
+
+  useDebounceEffect(
+    () => {
+      setUriState({
+        model: modelName,
+        page: page,
+      });
+    },
+    [modelName, page],
+    {
+      wait: 800,
+    },
+  );
+
+  useMount(() => {
+    const query = location.query;
+    if (query?.page) {
+      setPage(Number(query?.page));
+    } else {
+      setPage(1);
+    }
+  });
+
+  useUnmount(() => {
+    setUriState({
+      model: undefined,
+      page: undefined,
+    });
+  });
 
   // 获取模型信息
   const { run: modelInfoReq, loading: modelInfoLoading } = useRequest(
@@ -65,7 +121,9 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     {
       manual: true,
       onSuccess: (resp) => {
-        setHasMore(resp.data?.data?.length >= resp.data?.page_size);
+        if (resp.data?.data?.length >= resp.data?.page_size) {
+          setTotal(total + resp.data?.page_size);
+        }
         if (resp.response.status === 200) {
           const uniqueList = uniqBy(data.concat(resp.data?.data), '_id');
           setData(uniqueList);
@@ -73,7 +131,6 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           setPageSize(resp.data?.page_size);
         }
       },
-      formatResult: getResultFormat,
     },
   );
 
@@ -92,13 +149,41 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     },
   );
 
+  // 删除数据
+  const { run: deleteData, loading: deleteLoading } = useRequest(
+    new RestApiGen(C + '/' + modelName).delete,
+    {
+      manual: true,
+      onSuccess: (resp) => {
+        if (resp.response.status === 200) {
+          setData(data.filter((d) => d._id !== resp?.data?.id));
+        }
+      },
+    },
+  );
+
   useEffect(() => {
     if (modelName) {
-      setPage(1);
       modelInfoReq(modelName);
-      runFetch();
     }
   }, [modelName]);
+
+  useEffect(() => {
+    if (modelInfo) {
+      if (page === 1) {
+        runFetch();
+      } else {
+        setPage(1);
+      }
+      setData([]);
+    }
+  }, [modelInfo]);
+
+  useEffect(() => {
+    if (page) {
+      runFetch();
+    }
+  }, [page]);
 
   const runFetch = () => {
     getData({
@@ -108,17 +193,121 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   };
 
   let columns: TableColumnsType<any> | undefined = [];
-  if (data.length) {
+
+  if (data.length && modelInfo?.field_list?.length) {
+    modelInfo?.field_list.map((d) => {
+      if (d?.children?.length) {
+        if (!d.bson.includes('inline')) {
+          columns?.push({
+            title: d.name,
+            render: (_, record) => {
+              return (
+                <div
+                  onClick={() =>
+                    showStruct(record[d.map_name], d.name + '字段信息')
+                  }
+                >
+                  {d.children.length} 个字段
+                </div>
+              );
+            },
+          });
+          return;
+        }
+        d.children.map((b) => {
+          return columns?.push({
+            title: b.name,
+            dataIndex: b.map_name,
+            render: (text) => {
+              if (Array.isArray(text)) {
+                return (
+                  <Space>
+                    {text?.map((vv: string, i: number) => {
+                      return <Tag key={i}>{vv}</Tag>;
+                    })}
+                  </Space>
+                );
+              }
+              return text;
+            },
+          });
+        });
+        return;
+      }
+
+      if (d.bson.includes('inline')) {
+        return columns?.push({
+          title: d.name,
+          dataIndex: d.map_name,
+        });
+      }
+
+      return columns?.push({
+        title: d.name,
+        dataIndex: d.map_name,
+        render: (text) => {
+          if (Array.isArray(text)) {
+            return (
+              <Space>
+                {text?.map((vv: string, i: number) => {
+                  return <Tag key={i}>{vv}</Tag>;
+                })}
+              </Space>
+            );
+          }
+          return text;
+        },
+      });
+    });
   }
 
-  const addSuccess = (values: any) => {
+  if (!columns.some((b: any) => b?.dataIndex == '_id')) {
+    columns.unshift({
+      title: 'Id',
+      dataIndex: '_id',
+    });
+  }
+
+  columns.push({
+    title: '操作',
+    render: (text: string, record: any) => {
+      return (
+        <div className="px-2">
+          <Space size="middle">
+            <Popconfirm
+              title={'确认删除这条数据吗?'}
+              onConfirm={() => runDelete(record)}
+            >
+              <DeleteOutlined title={'删除'} />
+            </Popconfirm>
+            <CompressOutlined
+              title={'展开全部'}
+              onClick={() => showStruct(record, '全部字段信息')}
+            />
+            <EditOutlined
+              title={'编辑'}
+              onClick={() => editRecordBefore(record)}
+            />
+          </Space>
+        </div>
+      );
+    },
+  });
+
+  // 删除
+  const runDelete = (record: any) => {
+    deleteData(record._id);
+  };
+
+  // 新增
+  const addBefore = (values: any) => {
     const data = {} as any;
     for (const [key, value] of Object.entries(values)) {
       // 新增的时候value不存在则不提交
       if (value) {
         const field = modelInfo?.flat_fields.find((d) => d.map_name === key);
         if (field) {
-          data[field.full_map_name || field.map_name] = value;
+          data[field.params_key] = value;
         } else {
           console.error(`${key}未找到字段信息`);
         }
@@ -132,7 +321,26 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     }
   };
 
+  // 修改
+  const editRecordBefore = (record: any) => {
+    openDrawerEditFields(record);
+  };
+
+  const runAddBefore = () => {
+    setShow(true);
+  };
+
+  // 显示
+  const showStruct = (content: any, title?: string) => {
+    openDrawerFields(content, title);
+  };
+
+  const pageChange = (page: number) => {
+    setPage(page);
+  };
+
   let addFormFields: Array<field> = [];
+
   modelInfo?.flat_fields?.map((d) => {
     if (d.is_pk || d.is_created || d.is_updated || d.kind === 'struct') {
     } else {
@@ -142,6 +350,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         map_name: d.map_name,
         required: false,
         slice: d.kind,
+        initKey: d.params_key,
       } as field);
     }
   });
@@ -150,7 +359,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     <React.Fragment>
       <div className={'my-2'}>
         <Space>
-          <Button onClick={() => setShow(true)}>新增</Button>
+          <Button onClick={runAddBefore}>新增</Button>
           <Button onClick={() => runFetch()}>刷新</Button>
         </Space>
       </div>
@@ -158,7 +367,13 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         dataSource={data}
         columns={columns}
         rowKey={'_id'}
-        loading={loading || modelInfoLoading || addLoading}
+        loading={loading || modelInfoLoading || addLoading || deleteLoading}
+        pagination={{
+          total: total,
+          current: page,
+          pageSize: pageSize,
+          onChange: pageChange,
+        }}
         scroll={{ x: true }}
       />
 
@@ -166,7 +381,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         <CommForm
           fieldsList={addFormFields}
           onCancel={() => setShow(false)}
-          onCreate={addSuccess}
+          onCreate={addBefore}
         />
       )}
     </React.Fragment>

@@ -14,11 +14,7 @@ const V: React.FC<p> = ({ ...props }) => {
   const [tabs, setTabs] = useState<Array<tabItem>>([]);
   const [tab, setTab] = useState<tabItem>();
 
-  // 把参数变化保留到url上
   const location = useRealLocation();
-  const [uriState, setUriState] = useUrlState(undefined, {
-    navigateMode: 'replace',
-  });
 
   useEffect(() => {
     if (!!userPer) {
@@ -47,18 +43,6 @@ const V: React.FC<p> = ({ ...props }) => {
     setTab(item);
   };
 
-  useDebounceEffect(
-    () => {
-      setUriState({
-        model: tab?.label,
-      });
-    },
-    [tab],
-    {
-      wait: 800,
-    },
-  );
-
   useMount(() => {
     const query = location.query;
     if (query?.model) {
@@ -67,12 +51,6 @@ const V: React.FC<p> = ({ ...props }) => {
         id: query?.model,
       } as tabItem);
     }
-  });
-
-  useUnmount(() => {
-    setUriState({
-      model: undefined,
-    });
   });
 
   return (
