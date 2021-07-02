@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
 import Fetch, { C } from '@/utils/fetch';
 import RestApiGen, { getResultFormat } from '@/utils/restApiGen';
@@ -24,6 +24,8 @@ import { openDrawerFields } from '@/components/drawShowField';
 import useRealLocation from '@/components/useRealLocation';
 import useUrlState from '@ahooksjs/use-url-state';
 import { openDrawerEditFields } from '@/components/drawEditField';
+import { objectToData } from '@/utils/tools';
+import useModelPer from '@/pages/model/useModelPer';
 
 interface p {
   modelName: string;
@@ -46,6 +48,7 @@ interface fieldInfo {
   is_updated: boolean;
   is_deleted: boolean;
   is_geo: boolean;
+  is_mab_inline: boolean;
   is_inline: boolean;
   children: Array<fieldInfo>;
   children_kind: boolean;
@@ -66,6 +69,8 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   const [total, setTotal] = useState<number>(10);
   const [modelInfo, setModelInfo] = useState<modelInfo>();
   const [show, setShow] = useState<boolean>(false); // 新增
+  const cover = useRef<boolean>(false);
+  const per = useModelPer(modelName);
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -125,8 +130,13 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           setTotal(total + resp.data?.page_size);
         }
         if (resp.response.status === 200) {
-          const uniqueList = uniqBy(data.concat(resp.data?.data), '_id');
-          setData(uniqueList);
+          if (cover.current) {
+            setData(resp?.data?.data);
+            cover.current = false;
+          } else {
+            const uniqueList = uniqBy(data.concat(resp.data?.data), '_id');
+            setData(uniqueList);
+          }
           setPage(resp.data?.page);
           setPageSize(resp.data?.page_size);
         }
@@ -143,7 +153,21 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         if (resp.response.status === 200) {
           message.success('新增成功');
           setShow(false);
-          runFetch();
+          runRefresh();
+        }
+      },
+    },
+  );
+
+  // 修改数据
+  const { run: updateData, loading: updateLoading } = useRequest(
+    new RestApiGen(C + '/' + modelName).put,
+    {
+      manual: true,
+      onSuccess: (resp) => {
+        if (resp.response.status === 200) {
+          message.success('修改成功');
+          runRefresh();
         }
       },
     },
@@ -197,7 +221,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   if (data.length && modelInfo?.field_list?.length) {
     modelInfo?.field_list.map((d) => {
       if (d?.children?.length) {
-        if (!d.bson.includes('inline')) {
+        if (!d.is_inline) {
           columns?.push({
             title: d.name,
             render: (_, record) => {
@@ -235,7 +259,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         return;
       }
 
-      if (d.bson.includes('inline')) {
+      if (d.is_inline) {
         return columns?.push({
           title: d.name,
           dataIndex: d.map_name,
@@ -270,24 +294,30 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
   columns.push({
     title: '操作',
+    fixed: 'right',
     render: (text: string, record: any) => {
       return (
         <div className="px-2">
           <Space size="middle">
-            <Popconfirm
-              title={'确认删除这条数据吗?'}
-              onConfirm={() => runDelete(record)}
-            >
-              <DeleteOutlined title={'删除'} />
-            </Popconfirm>
+            {per.delete && (
+              <Popconfirm
+                title={'确认删除这条数据吗?'}
+                onConfirm={() => runDelete(record)}
+              >
+                <DeleteOutlined title={'删除'} />
+              </Popconfirm>
+            )}
+
             <CompressOutlined
               title={'展开全部'}
               onClick={() => showStruct(record, '全部字段信息')}
             />
-            <EditOutlined
-              title={'编辑'}
-              onClick={() => editRecordBefore(record)}
-            />
+            {per.put && (
+              <EditOutlined
+                title={'编辑'}
+                onClick={() => editRecordBefore(record)}
+              />
+            )}
           </Space>
         </div>
       );
@@ -321,13 +351,80 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     }
   };
 
+  // 修改完成
+  const editSuccess = (diff: any, mid: string, _data: any) => {
+    console.log('修改完成', diff, mid);
+    let data = {} as any;
+    modelInfo?.field_list?.map((d) => {
+      if (d.is_pk) return;
+
+      if (d.is_inline && d.is_mab_inline) {
+        d.children.map((b) => {
+          if (diff.hasOwnProperty(b.map_name)) {
+            data[b.map_name] = diff[b.map_name];
+          }
+        });
+        return;
+      }
+      if (d.is_inline) {
+        const _c = {} as any;
+        let has = d.children.some((b) => diff.hasOwnProperty(b.map_name));
+        // 遍历
+        d.children.map((b) => {
+          if (diff.hasOwnProperty(b.map_name)) {
+            _c[b.map_name] = diff[b.map_name];
+          } else {
+            if (has) {
+              _c[b.map_name] = _data[b.map_name];
+            }
+          }
+        });
+        if (has) {
+          delete _c['_id'];
+          data = { ...data, ...objectToData(_c, d.map_name) };
+        }
+
+        return;
+      }
+      if (d.is_mab_inline) {
+        if (diff.hasOwnProperty(d.map_name)) {
+          data = {
+            ...data,
+            ...objectToData(diff?.[d.map_name] || {}, d.map_name),
+          };
+        }
+      } else {
+        if (diff.hasOwnProperty(d.map_name)) {
+          if (d?.children && d?.children?.length) {
+            data = {
+              ...data,
+              ...objectToData(diff?.[d.map_name] || {}, d.map_name),
+            };
+            return;
+          }
+          data[d.map_name] = diff[d.map_name];
+        }
+      }
+    });
+
+    console.log('修改参数', data);
+
+    updateData(mid, data);
+  };
+
   // 修改
   const editRecordBefore = (record: any) => {
-    openDrawerEditFields(record);
+    openDrawerEditFields(record, `修改${record['_id']}`, editSuccess);
   };
 
   const runAddBefore = () => {
     setShow(true);
+  };
+
+  // 刷新
+  const runRefresh = () => {
+    cover.current = true;
+    runFetch();
   };
 
   // 显示
@@ -359,15 +456,22 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     <React.Fragment>
       <div className={'my-2'}>
         <Space>
-          <Button onClick={runAddBefore}>新增</Button>
-          <Button onClick={() => runFetch()}>刷新</Button>
+          {per.post && <Button onClick={runAddBefore}>新增</Button>}
+
+          <Button onClick={runRefresh}>刷新</Button>
         </Space>
       </div>
       <Table
         dataSource={data}
         columns={columns}
         rowKey={'_id'}
-        loading={loading || modelInfoLoading || addLoading || deleteLoading}
+        loading={
+          loading ||
+          modelInfoLoading ||
+          addLoading ||
+          deleteLoading ||
+          updateLoading
+        }
         pagination={{
           total: total,
           current: page,

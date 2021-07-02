@@ -1,10 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {
-  useLocalStorageState,
-  useMount,
-  useRequest,
-  useSessionStorageState,
-} from 'ahooks';
+import { useRequest, useSessionStorageState } from 'ahooks';
 import CONFIG from '../utils/config';
 import Fetch from '../utils/fetch';
 
@@ -13,18 +8,18 @@ export default function useAuthModel() {
   let [userToken, setUserToken] = useSessionStorageState(CONFIG.save.token);
   const [userPer, setUserPer] = useState([]);
 
-  const { run: getUserPer } = useRequest(Fetch.getUserPer, {
+  const { run: getUserInfoReq } = useRequest(Fetch.getUserInfo, {
     manual: true,
     onSuccess: (resp) => {
       if (resp.response.status === 200) {
-        setUserPer(resp.data?.data || []);
+        setUserPer(resp.data?.policy?.data || []);
       }
     },
   });
 
   useEffect(() => {
     if (userToken) {
-      getUserPer();
+      getUserInfoReq();
     }
   }, []);
 
@@ -33,7 +28,7 @@ export default function useAuthModel() {
     // setUser(user from signin API)
     setUserInfo(userInfo);
     setUserToken(token);
-    getUserPer();
+    getUserInfoReq();
   }, []);
 
   const signout = useCallback(() => {

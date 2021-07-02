@@ -69,17 +69,23 @@ export default function (props) {
     );
   };
 
+  const postMenus = (menus) => {
+    // todo 加载用户的微前端路径
+    return menus;
+  };
+
   return (
     <BasicLayout
       title={window?.smab?.name}
       {...props}
       breadcrumbRender={(routers = []) => [
         {
-          path: '/',
+          path: window?.routerBase || '/',
           breadcrumbName: '首页',
         },
         ...routers,
       ]}
+      postMenuData={postMenus}
       menuDataRender={menuDataRender}
       menuItemRender={menuItemRender}
       rightContentRender={rightContentRender}

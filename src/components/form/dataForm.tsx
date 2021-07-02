@@ -46,7 +46,7 @@ interface kv {
   [k: string]: any;
 }
 
-interface p {
+export interface formParams {
   onCreate?: (values: any) => void;
   onCancel?: Function;
   fieldsList: Array<field>;
@@ -80,7 +80,7 @@ const formItemAddBtnWithOutLabel = {
   },
 };
 
-const CommForm: React.FC<p> = ({
+const CommForm: React.FC<formParams> = ({
   onCreate,
   onCancel,
   fieldsList,
@@ -91,6 +91,7 @@ const CommForm: React.FC<p> = ({
   ...props
 }) => {
   const [form] = Form.useForm();
+  const [show, setShow] = useState<boolean>(true);
 
   const flattenKeys: (obj: any, path?: any[]) => { [p: string]: any } = (
     obj: any,
@@ -133,6 +134,7 @@ const CommForm: React.FC<p> = ({
           'int64',
           'float32',
           'float64',
+          'number',
           'time.Duration',
         ].includes(d.types)
       ) {
@@ -143,14 +145,9 @@ const CommForm: React.FC<p> = ({
 
   // console.log('initialValues', initialValues, fieldsList);
 
-  // 单个
-  const TypeToElement = (k: field) => {
-    // console.log('type to element', k);
-    let required = !!k?.required;
-    const t = k.types;
-    const valueProp = t === 'bool' ? 'checked' : 'value';
+  const typeGetElement = (types: string, placeholder?: string) => {
     let ele;
-    switch (t) {
+    switch (types) {
       case 'float32':
       case 'float64':
       case 'int':
@@ -163,27 +160,36 @@ const CommForm: React.FC<p> = ({
       case 'uint16':
       case 'uint32':
       case 'uint64':
+      case 'number':
       case 'time.Duration':
         ele = (
           <InputNumber
             style={{ width: '100%' }}
-            placeholder={k?.placeholder || '请输入内容'}
+            placeholder={placeholder || '请输入内容'}
           />
         );
         break;
       case 'time':
       case 'time.Time':
-        ele = (
-          <DatePicker showTime placeholder={k?.placeholder || '请选择时间'} />
-        );
+        ele = <DatePicker showTime placeholder={placeholder || '请选择时间'} />;
         break;
       case 'bool':
         ele = <Switch />;
         break;
       default:
-        ele = <Input placeholder={k?.placeholder || '请输入内容'} />;
+        ele = <Input placeholder={placeholder || '请输入内容'} />;
         break;
     }
+    return ele;
+  };
+
+  // 单个
+  const TypeToElement = (k: field) => {
+    // console.log('type to element', k);
+    let required = !!k?.required;
+    const t = k.types;
+    const valueProp = t === 'bool' ? 'checked' : 'value';
+    let ele = typeGetElement(t, k.placeholder);
 
     const rules = [
       {
@@ -213,41 +219,7 @@ const CommForm: React.FC<p> = ({
     let required = !!k?.required;
     const t = k.types.replaceAll('[', '').replaceAll(']', '');
     const valueProp = t === 'bool' ? 'checked' : 'value';
-    let ele: any;
-    switch (t) {
-      case 'float32':
-      case 'float64':
-      case 'int':
-      case 'int8':
-      case 'int16':
-      case 'int32':
-      case 'int64':
-      case 'uint':
-      case 'uint8':
-      case 'uint16':
-      case 'uint32':
-      case 'uint64':
-      case 'time.Duration':
-        ele = (
-          <InputNumber
-            style={{ width: '100%' }}
-            placeholder={k?.placeholder || '请输入内容'}
-          />
-        );
-        break;
-      case 'time':
-      case 'time.Time':
-        ele = (
-          <DatePicker showTime placeholder={k?.placeholder || '请选择时间'} />
-        );
-        break;
-      case 'bool':
-        ele = <Switch />;
-        break;
-      default:
-        ele = <Input placeholder={k?.placeholder || '请输入内容'} />;
-        break;
-    }
+    let ele = typeGetElement(t, k.placeholder);
 
     const rules = [
       {
@@ -411,16 +383,21 @@ const CommForm: React.FC<p> = ({
       });
   };
 
+  const onClose = () => {
+    onCancel && onCancel(false);
+    setShow(false);
+  };
+
   return (
     <Drawer
-      visible={true}
+      visible={show}
       title="数据交互页"
       placement={'right'}
       width={'80%'}
       bodyStyle={{ padding: 10 }}
       headerStyle={{ padding: 10 }}
       closable={false}
-      onClose={() => onCancel && onCancel(false)}
+      onClose={onClose}
     >
       <div className={'mt-4'}>
         <Form

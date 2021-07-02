@@ -26,6 +26,7 @@
     "@umijs/preset-react": "1.x",
     "ahooks": "^2.10.6",
     "babel-plugin-transform-remove-console": "^6.9.4",
+    "dayjs": "^1.10.5",
     "lodash": "^4.17.21",
     "query-string": "^7.0.1",
     "react-json-view": "^1.21.3",

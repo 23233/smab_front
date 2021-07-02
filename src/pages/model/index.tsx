@@ -22,7 +22,10 @@ const V: React.FC<p> = ({ ...props }) => {
       userPer.map((d: any) => {
         if (d.key === 'model_i') {
           d?.children?.map((b: any) => {
-            tt.push(b.title);
+            // 判断是否有get权限
+            if (b.children.some((c: any) => c.title === 'get')) {
+              tt.push(b.title);
+            }
           });
         }
       });

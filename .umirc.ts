@@ -63,4 +63,5 @@ export default defineConfig({
     },
   ],
   publicPath: '/smab_static/',
+  base: '/admin',
 });

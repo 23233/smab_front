@@ -1,8 +1,5 @@
-let ROUTER_PREFIX = '/admin';
-
-const Main_Prefix = ROUTER_PREFIX + '/v';
-
-const Model_Prefix = Main_Prefix + '/c';
+const ROUTER_PREFIX = '/';
+const Main_Prefix = ROUTER_PREFIX + 'v';
 
 const ROUTERS = {
   login: ROUTER_PREFIX + '/user/login',
@@ -44,13 +41,13 @@ export const Routes = [
           },
           {
             path: ROUTERS.data,
-            name: '数据',
+            name: '报表',
             component: './user/manage/index',
           },
           {
             path: ROUTERS.view,
             name: '任务',
-            component: './user/manage/index',
+            component: './task/index',
           },
           {
             path: ROUTERS.user,

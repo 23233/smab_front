@@ -2,7 +2,6 @@ import React from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { Card, Typography, Alert } from 'antd';
 
-
 export default () => (
   <PageHeaderWrapper>
     <Card>
@@ -17,19 +16,19 @@ export default () => (
         }}
       />
       <Typography.Text strong>
-        <span>
-             欢迎使用后台管理系统,如果未看到任何菜单,请联系管理员!
-        </span>
+        <span>欢迎使用后台管理系统,如果未看到任何菜单,请联系管理员!</span>
       </Typography.Text>
       <p>
         <Typography.Text strong>
-        <span>
-             请勿进行任何越权操作,每次操作均有记录,no zuo no die!
-        </span>
+          <span>请勿进行任何越权操作,每次操作均有记录,no zuo no die!</span>
         </Typography.Text>
       </p>
 
+      <p className={'mt-10'}>
+        <Typography.Text>
+          <span>模型暂不支持修改创建时间 修改时间</span>
+        </Typography.Text>
+      </p>
     </Card>
-
   </PageHeaderWrapper>
 );

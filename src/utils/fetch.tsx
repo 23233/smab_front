@@ -1,5 +1,6 @@
 import Req, { prefix } from '@/utils/request';
 import { loginRegReq } from '@/utils/req_interface';
+import RestApiGen from '@/utils/restApiGen';
 
 const p = `${prefix}${(window as any)?.smab?.prefix}`;
 
@@ -24,8 +25,8 @@ const req = {
     });
   },
   // 获取用户权限
-  getUserPer: (uid?: string) => {
-    return Req.get(`${v}/user_permissions`);
+  getUserInfo: (uid?: string) => {
+    return Req.get(`${v}/user_info`);
   },
   // 获取用户
   getUserList: () => {
@@ -57,10 +58,20 @@ const req = {
   getModelInfo: (name: string) => {
     return Req.get(`${v}/get_model/${name}`);
   },
+  // 任务变更完成/失败
+  changeTaskSuccess: (id: string, success: boolean) => {
+    return Req.post(`${v}/task_change_success`, {
+      data: {
+        id,
+        success,
+      },
+    });
+  },
 };
 
 const Fetch = {
   ...req,
+  task: new RestApiGen(v + '/sm_task'),
 };
 
 export default Fetch;
