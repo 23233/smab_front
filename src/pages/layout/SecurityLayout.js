@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useModel, history, Link } from 'umi';
 import { Menu, Dropdown, Avatar, message } from 'antd';
 import Router from '../../router';
-import { LogoutOutlined, LockOutlined } from '@ant-design/icons';
+import { LogoutOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 
 import BasicLayout from '@ant-design/pro-layout';
 
@@ -50,6 +50,10 @@ export default function (props) {
   const rightContentRender = (HeaderViewProps) => {
     const menuHeaderDropdown = (
       <Menu selectedKeys={[]} onClick={rightMenusClick}>
+        <Menu.Item key="Id">
+          <UserOutlined />
+          {userInfo?.id}
+        </Menu.Item>
         <Menu.Item key="changePassword">
           <LockOutlined />
           变更密码
