@@ -1,0 +1,146 @@
+[
+  {
+    "name": "折线图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*nBhpT5HbGOAAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/line#基础折线图",
+    "types": "Line"
+  },
+  {
+    "name": "条形图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*uSKqQo2lCPoAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/bar#基础条形图",
+    "types": "Bar"
+  },
+  {
+    "name": "面积图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*AE2CTr-Uz3QAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/area#基础面积图",
+    "types": "Area"
+  },
+  {
+    "name": "柱状图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*92VnSrkQLeAAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/column#基础柱状图",
+    "types": "Column"
+  },
+  {
+    "name": "饼图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*wmldRZZj9lIAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/pie#饼图",
+    "types": "Pie"
+  },
+  {
+    "name": "玫瑰图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*OgVJR7IIQiMAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/rose#玫瑰图",
+    "types": "Rose"
+  },
+  {
+    "name": "柱线混合图表",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*OjMdQamxTvsAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/dual-axes#柱线混合图表",
+    "types": "DualAxes"
+  },
+  {
+    "name": "漏斗图",
+    "preview": "https://gw.alicdn.com/tfs/TB158FxuAT2gK0jSZPcXXcKkpXa-646-500.png",
+    "href": "https://charts.ant.design/demos/funnel#基础漏斗图",
+    "types": "Funnel"
+  },
+  {
+    "name": "水平方向子弹图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*Vk43S5pvUJcAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/bullet#基础水平方向子弹图",
+    "types": "Bullet"
+  },
+  {
+    "name": "仪表盘",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*wjukQ4x3qfMAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/gauge#仪表盘",
+    "types": "Gauge"
+  },
+  {
+    "name": "直方图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_2274c3/afts/img/A*EHpuTqn-M2cAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/histogram#基础直方图",
+    "types": "Histogram"
+  },
+  {
+    "name": "水波图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*IDi-RoqQ6YkAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/liquid#水波图",
+    "types": "Liquid"
+  },
+  {
+    "name": "迷你进度条图样式",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*xjbxRJTD2wUAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/progress#迷你进度条图样式",
+    "types": "Progress"
+  },
+  {
+    "name": "雷达图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*3550RoixKpEAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/radar#基础雷达图",
+    "types": "Radar"
+  },
+  {
+    "name": "蜡烛图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*-zWUSo2PFj0AAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/stock#基础蜡烛图",
+    "types": "Stock"
+  },
+  {
+    "name": "箱型图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_f5c722/afts/img/A*hL2WSrRh9K0AAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/box#基础箱型图",
+    "types": "Box"
+  },
+  {
+    "name": "迷你进度环图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*dP0sQrvPsDsAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/ring-progress#迷你进度环图",
+    "types": "RingProgress"
+  },
+  {
+    "name": "散点图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*Cu0wSYK_U6YAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/scatter#基础散点图",
+    "types": "Scatter"
+  },
+  {
+    "name": "旭日图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_f5c722/afts/img/A*UbXJTZ9weikAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/sunburst#基础旭日图",
+    "types": "Sunburst"
+  },
+  {
+    "name": "词云图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_2274c3/afts/img/A*SEgST634CwUAAAAAAAAAAABkARQnAQ",
+    "href": "https://charts.ant.design/demos/word-cloud#词云图",
+    "types": "WordCloud"
+  },
+  {
+    "name": "迷你面积图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*8Qf7Q45ubMMAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/tiny-area#基础迷你面积图",
+    "types": "TinyArea"
+  },
+  {
+    "name": "迷你柱形图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*lJWoS5D2OC0AAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/tiny-column#基础迷你柱形图",
+    "types": "TinyColumn"
+  },
+  {
+    "name": "迷你折线图",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*v0_RR7osTYsAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/tiny-line#基础迷你折线图",
+    "types": "TinyLine"
+  },
+  {
+    "name": "辅助线标注",
+    "preview": "https://gw.alipayobjects.com/mdn/rms_d314dd/afts/img/A*d8s-RrJb-xcAAAAAAAAAAAAAARQnAQ",
+    "href": "https://charts.ant.design/demos/general#辅助线标注",
+    "types": "General"
+  }
+]

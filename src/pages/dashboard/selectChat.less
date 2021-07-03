@@ -1,0 +1,30 @@
+.chat_li {
+  height: 200px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover,
+  &.active {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(-10px);
+  }
+
+  &.active {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+  }
+
+  img {
+    height: 150px;
+    width: auto;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+  }
+
+  p {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+  }
+}

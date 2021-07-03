@@ -72,6 +72,8 @@ const req = {
 const Fetch = {
   ...req,
   task: new RestApiGen(v + '/sm_task'),
+  dashboard_screen: new RestApiGen(v + '/sm_dash_board_screen'),
+  dashboard: new RestApiGen(v + '/sm_dash_board'),
 };
 
 export default Fetch;

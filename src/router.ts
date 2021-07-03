@@ -9,6 +9,10 @@ const ROUTERS = {
   model: Main_Prefix + '/model',
   data: Main_Prefix + '/data',
   view: Main_Prefix + '/view',
+  dashboard: {
+    screen: Main_Prefix + '/dashboard_screen',
+    dashBoard: Main_Prefix + '/dashboard',
+  },
 };
 
 export default ROUTERS;
@@ -42,7 +46,7 @@ export const Routes = [
           {
             path: ROUTERS.data,
             name: '报表',
-            component: './user/manage/index',
+            component: './dashboard/index',
           },
           {
             path: ROUTERS.view,

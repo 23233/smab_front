@@ -144,7 +144,7 @@ const v = () => {
       onSuccess: (resp) => {
         if (resp.response.status === 200) {
           message.success('变更完成');
-          runFetch();
+          runRefresh();
         }
       },
     },
@@ -220,17 +220,20 @@ const v = () => {
         return (
           <div className="px-2">
             <Space size="small">
-              {record?.allow_change_success && record.success ? (
-                <RollbackOutlined
-                  title={'重新处理'}
-                  onClick={() => activeChangeSuccess(record, !record.success)}
-                />
-              ) : (
-                <CheckOutlined
-                  title={'处理完成'}
-                  onClick={() => activeChangeSuccess(record, !record.success)}
-                />
-              )}
+              {record?.allow_change_success ? (
+                record.success ? (
+                  <RollbackOutlined
+                    title={'重新处理'}
+                    onClick={() => activeChangeSuccess(record, !record.success)}
+                  />
+                ) : (
+                  <CheckOutlined
+                    title={'处理完成'}
+                    onClick={() => activeChangeSuccess(record, !record.success)}
+                  />
+                )
+              ) : null}
+
               {!success.current &&
                 record.action?.map((d, i) => {
                   return (

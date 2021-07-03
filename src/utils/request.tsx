@@ -5,7 +5,6 @@
 import { extend } from 'umi-request';
 import { notification, Button } from 'antd';
 import React from 'react';
-import { stringify } from 'querystring';
 import { history } from 'umi';
 import Router from '../router';
 import CONFIG from '@/utils/config';

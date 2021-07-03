@@ -1,0 +1,47 @@
+.chart_wrap {
+  height: 100%;
+  position: relative;
+
+  &:hover {
+    .op-wrap {
+      display: flex;
+    }
+  }
+
+  h4 {
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .op-wrap {
+    @size: 32px;
+    position: absolute;
+    right: 5%;
+    top: 5%;
+    z-index: 999;
+
+    .icons {
+      width: @size;
+      height: @size;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      font-size: @size / 2;
+      color: #fff;
+      margin-left: 8px;
+
+      &:hover {
+        background: rgba(19, 37, 234, 0.6);
+      }
+    }
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: none;
+  }
+}

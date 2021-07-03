@@ -39,6 +39,7 @@ export default defineConfig({
     defaultSizes: 'parsed', // stat  // gzip
   },
   title: false,
+  mfsu: {},
   proxy: {
     '/api/': {
       target: 'http://127.0.0.1:8080',
