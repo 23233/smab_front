@@ -57,26 +57,41 @@ const v = () => {
       title: 'id',
       dataIndex: 'id',
       key: 'id',
+      render: (text: string) => {
+        return <div style={{ width: 100 }}>{text}</div>;
+      },
     },
     {
       title: '姓名',
       dataIndex: 'name',
       key: 'name',
+      render: (text: string) => {
+        return <div style={{ width: 100 }}>{text}</div>;
+      },
     },
     {
       title: '简介',
       dataIndex: 'desc',
       key: 'desc',
+      render: (text: string) => {
+        return <div style={{ width: 100 }}>{text}</div>;
+      },
     },
     {
       title: '电话',
       dataIndex: 'phone',
       key: 'phone',
+      render: (text: string) => {
+        return <div style={{ width: 100 }}>{text}</div>;
+      },
     },
     {
       title: '创建者',
       dataIndex: 'create_id',
       key: 'create_id',
+      render: (text: string) => {
+        return <div style={{ width: 100 }}>{text}</div>;
+      },
     },
   ] as any;
 
@@ -86,13 +101,14 @@ const v = () => {
       dataIndex: 'super_user',
       key: 'super_user',
       render: (text: boolean, record: any) => {
-        return text ? '是' : '否';
+        return <div style={{ width: 60 }}>{text ? '是' : '否'}</div>;
       },
     });
   }
 
   columns.push({
     title: '操作',
+    fixed: 'right',
     render: (text: string, record: any) => {
       return (
         <Space size="middle">
@@ -167,6 +183,7 @@ const v = () => {
         rowKey={'id'}
         columns={columns}
         loading={loading}
+        scroll={{ x: true }}
       />
 
       <AddUser show={show} setShow={setShow} onSuccess={addUserSuccess} />

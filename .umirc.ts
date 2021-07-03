@@ -18,9 +18,13 @@ const loadTailwindCss = [
 ];
 
 if (IS_PROD) {
-  loadTailwindCss.push(
-    require('@fullhuman/postcss-purgecss')({ content: ['./src/**/*.tsx'] }),
-  );
+  // loadTailwindCss.push(
+  //   require('@fullhuman/postcss-purgecss')({
+  //     content: ['./src/pages/**/*.tsx','./src/components/**/*.tsx'],
+  //     css:["./src/app.less"],
+  //     safelist: [/^ant/],
+  //   }),
+  // );
 }
 const extraPostCss = [...loadTailwindCss];
 
@@ -39,7 +43,7 @@ export default defineConfig({
     defaultSizes: 'parsed', // stat  // gzip
   },
   title: false,
-  mfsu: {},
+  // mfsu: {},
   proxy: {
     '/api/': {
       target: 'http://127.0.0.1:8080',

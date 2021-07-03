@@ -2,7 +2,7 @@ const ROUTER_PREFIX = '/';
 const Main_Prefix = ROUTER_PREFIX + 'v';
 
 const ROUTERS = {
-  login: ROUTER_PREFIX + '/user/login',
+  login: ROUTER_PREFIX + 'user/login',
   task: Main_Prefix,
   welcome: Main_Prefix + '/welcome',
   user: Main_Prefix + '/user',
