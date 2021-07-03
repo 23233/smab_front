@@ -23,43 +23,9 @@ import {
   UserSwitchOutlined,
 } from '@ant-design/icons';
 import 'dayjs/plugin/relativeTime';
-import { tabItem } from '@/define/exp';
+import { actionItem, tabItem, task } from '@/define/exp';
 import DrawerSelectUserOne from '@/components/drawerSelectUser';
-
-interface defaultField {
-  _id: string;
-  id: string;
-  update_at: string;
-  create_at: string;
-}
-
-interface formItem {
-  label: string;
-  key: string;
-  type: string;
-  slice: boolean;
-  required: boolean;
-  init_value?: string;
-}
-
-interface actionItem {
-  name: string;
-  extra?: Array<formItem>;
-  req_uri: string;
-  form_data?: Array<formItem>;
-}
-
-interface task extends defaultField {
-  name: string;
-  desc?: string;
-  type: number;
-  allow_change_success: boolean;
-  exp_time: string;
-  to_user: string;
-  create_user: string;
-  success: string;
-  action?: Array<actionItem>;
-}
+import { openDrawerTaskContent } from '@/pages/task/drawerShowTaskContent';
 
 const tabs = [
   { id: 'not', label: '待处理', success: false },
@@ -122,7 +88,7 @@ const v = () => {
     run({
       page: page,
       page_size: pageSize,
-      _o: 'update_at',
+      _od: 'update_at',
       to_user: userInfo.id,
       success: success.current,
     });
@@ -185,12 +151,34 @@ const v = () => {
     });
   };
 
+  // 显示审核内容
+  const viewContentClick = (record: task) => {
+    if (record?.package?.length) {
+      openDrawerTaskContent(record.package);
+    } else {
+      message.warning('没有参考内容');
+    }
+  };
+
   let columns: TableColumnsType<any> | undefined = [
     {
       title: 'id',
       dataIndex: '_id',
       render: (text) => {
         return <div style={{ width: 100 }}>{text}</div>;
+      },
+    },
+    {
+      title: '内容',
+      render: (_, record: task) => {
+        return (
+          <div
+            style={{ width: 60, color: 'blue' }}
+            onClick={() => viewContentClick(record)}
+          >
+            查看内容
+          </div>
+        );
       },
     },
     {
