@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useModel } from 'umi';
-import HorizontallyTabs, { tabItem } from '@/components/tabs/horizontally';
+import { tabItem } from '@/components/tabs/horizontally';
 import useRealLocation from '@/components/useRealLocation';
 import useUrlState from '@ahooksjs/use-url-state';
 import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
@@ -58,7 +58,23 @@ const V: React.FC<p> = ({ ...props }) => {
 
   return (
     <React.Fragment>
-      <HorizontallyTabs items={tabs} current={tab} onChange={tabChange} />
+      {/*平铺比较安全*/}
+      <div className={'flex flex-wrap'}>
+        {tabs.map((d) => {
+          return (
+            <div
+              className={`p-1 text-md ${
+                tab?.id === d.id ? 'border-b-2 border-blue-400' : ''
+              } cursor-pointer mr-2`}
+              title={d.label}
+              key={d.id}
+              onClick={() => tabChange(d)}
+            >
+              {d.label}
+            </div>
+          );
+        })}
+      </div>
 
       {!!tab && <ModelTableView modelName={tab.label} />}
     </React.Fragment>

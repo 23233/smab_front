@@ -172,7 +172,7 @@ export default function () {
   const runGetScreen = () => {
     getScreen({
       page_size: 20,
-      create_user_id: userInfo.id,
+      create_user_id: userInfo?.id,
     });
   };
 
