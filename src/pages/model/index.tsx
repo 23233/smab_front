@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useModel } from 'umi';
-import { tabItem } from '@/components/tabs/horizontally';
 import useRealLocation from '@/components/useRealLocation';
-import useUrlState from '@ahooksjs/use-url-state';
 import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
 import ModelTableView from '@/pages/model/table';
+import { tabItem } from '@/define/exp';
 
 interface p {}
 
@@ -59,11 +58,11 @@ const V: React.FC<p> = ({ ...props }) => {
   return (
     <React.Fragment>
       {/*平铺比较安全*/}
-      <div className={'flex flex-wrap'}>
+      <div className={'flex flex-wrap mb-2'}>
         {tabs.map((d) => {
           return (
             <div
-              className={`p-1 text-md ${
+              className={`p-1 px-2 text-md ${
                 tab?.id === d.id ? 'border-b-2 border-blue-400' : ''
               } cursor-pointer mr-2`}
               title={d.label}

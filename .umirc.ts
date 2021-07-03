@@ -46,7 +46,7 @@ export default defineConfig({
   // mfsu: {},
   proxy: {
     '/api/': {
-      target: 'http://127.0.0.1:7780',
+      target: 'http://127.0.0.1:8080',
       changeOrigin: true,
       pathRewrite: {
         '^/api/': '',
@@ -58,7 +58,7 @@ export default defineConfig({
     // yarn add babel-plugin-transform-remove-console
     IS_PROD ? 'transform-remove-console' : '',
   ],
-  extraPostCSSPlugins: extraPostCss,
+  // extraPostCSSPlugins: extraPostCss,
   fastRefresh: {},
   headScripts: [
     {

@@ -13,13 +13,13 @@ import {
 } from 'antd';
 import { uniqBy } from 'lodash';
 import { useModel } from '@@/plugin-model/useModel';
-import HorizontallyTabs from '@/components/tabs/horizontally';
 import dayjs from 'dayjs';
 import { openDataForm } from '@/components/form/open';
 import { field } from '@/components/form/dataForm';
 import Req, { prefix } from '@/utils/request';
 import { CheckOutlined, RollbackOutlined } from '@ant-design/icons';
 import 'dayjs/plugin/relativeTime';
+import { tabItem } from '@/define/exp';
 
 interface defaultField {
   _id: string;
@@ -56,6 +56,11 @@ interface task extends defaultField {
   action?: Array<actionItem>;
 }
 
+const tabs = [
+  { id: 'not', label: '待处理', success: false },
+  { id: 'off', label: '已处理', success: true },
+];
+
 // 任务中心
 const v = () => {
   const { userInfo } = useModel('useAuthModel');
@@ -65,6 +70,7 @@ const v = () => {
   const [total, setTotal] = useState<number>(10);
   const success = useRef<boolean>(false);
   const cover = useRef<boolean>(false);
+  const [tab, setTab] = useState<tabItem>(tabs[0]);
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -328,12 +334,8 @@ const v = () => {
     setPage(page);
   };
 
-  const tabs = [
-    { id: 'not', label: '待处理', success: false },
-    { id: 'off', label: '已处理', success: true },
-  ];
-
   const tabChange = (item: any) => {
+    setTab(item);
     success.current = item?.success;
     cover.current = true;
     if (page !== 1) {
@@ -345,11 +347,22 @@ const v = () => {
 
   return (
     <React.Fragment>
-      <HorizontallyTabs
-        items={tabs}
-        defaultCurrent={tabs[0]}
-        onChange={tabChange}
-      />
+      <div className={'flex mb-2'}>
+        {tabs.map((d) => {
+          return (
+            <div
+              className={`p-1 px-2 text-md ${
+                tab?.id === d.id ? 'border-b-2 border-blue-400' : ''
+              } cursor-pointer mr-2`}
+              title={d.label}
+              key={d.id}
+              onClick={() => tabChange(d)}
+            >
+              {d.label}
+            </div>
+          );
+        })}
+      </div>
 
       <div className={'my-2'}>
         <Space>
