@@ -67,6 +67,11 @@ const req = {
       },
     });
   },
+  dashboardGetData: (uri: string, params: any) => {
+    return Req.get(uri, {
+      params: params,
+    });
+  },
 };
 
 const Fetch = {

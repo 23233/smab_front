@@ -13,6 +13,7 @@ import { Rnd } from 'react-rnd';
 import Fetch from '../../utils/fetch';
 import { dashboard } from '@/pages/dashboard/index';
 import { objectToData } from '@/utils/tools';
+import { useModel } from 'umi';
 
 const { confirm } = Modal;
 
@@ -28,6 +29,8 @@ const SingleChat: React.FC<p> = ({
   onDelete,
   ...props
 }) => {
+  const { userInfo } = useModel('useAuthModel');
+
   const defaultSize = 200;
   const [showData, setShowData] = useState<any>();
   const [previewShow, setPreviewShow] = useState(false);
@@ -37,16 +40,20 @@ const SingleChat: React.FC<p> = ({
   const [y, setY] = useState(data?.extra.y || 0);
 
   // 获取数据内容
-  const { run: getData, loading: getDataLoading } = useRequest(data.data_uri, {
-    manual: true,
-    onSuccess: (resp) => {
-      if (resp.respose.status === 200) {
-        setShowData(resp.data);
-      }
+  const { run: getData, loading: getDataLoading } = useRequest(
+    Fetch.dashboardGetData,
+    {
+      manual: true,
+      onSuccess: (resp) => {
+        if (resp.response.status === 200) {
+          setShowData(resp.data);
+        }
+      },
+      [data.refresh_second ? 'pollingInterval' : '']:
+        data?.refresh_second * 1000,
+      pollingWhenHidden: false,
     },
-    [data.refresh_second ? 'pollingInterval' : '']: data?.refresh_second * 1000,
-    pollingWhenHidden: false,
-  });
+  );
 
   // 更新位置
   const { run: updatePositionReq } = useRequest(Fetch.dashboard.put, {
@@ -54,13 +61,17 @@ const SingleChat: React.FC<p> = ({
     debounceInterval: 200,
   });
 
-  //
   useEffect(() => {
-    getData();
+    runFetchData();
   }, []);
 
   const runFetchData = () => {
-    getData();
+    getData(data?.data_uri, {
+      chart_id: data?._id,
+      user_id: userInfo?.id,
+      screen_id: data?.screen_id,
+      chart_type: data?.chat_type,
+    });
   };
 
   // 删除图例
