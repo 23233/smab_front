@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useModel, history, Link } from 'umi';
-import { Menu, Dropdown, Avatar, message } from 'antd';
+import { Menu, Dropdown, Avatar, message, Popover } from 'antd';
 import Router from '../../router';
 import { LogoutOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 
@@ -52,7 +52,14 @@ export default function (props) {
       <Menu selectedKeys={[]} onClick={rightMenusClick}>
         <Menu.Item key="Id">
           <UserOutlined />
-          {userInfo?.id}
+          <Popover
+            content={userInfo?.id}
+            title={'用户ID'}
+            trigger={['click']}
+            placement={'rightTop'}
+          >
+            用户ID
+          </Popover>
         </Menu.Item>
         <Menu.Item key="changePassword">
           <LockOutlined />

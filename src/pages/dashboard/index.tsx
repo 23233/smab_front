@@ -18,7 +18,6 @@ import { useModel, Link } from 'umi';
 import ROUTERS from '@/router';
 import SingleChart from './singleChat';
 import Fetch from '../../utils/fetch';
-import DrawerSelectUser from '@/pages/dashboard/drawerSelectUser';
 import SelectChatType from '@/pages/dashboard/selectChatType';
 
 const { TabPane } = Tabs;

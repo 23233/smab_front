@@ -17,9 +17,14 @@ import dayjs from 'dayjs';
 import { openDataForm } from '@/components/form/open';
 import { field } from '@/components/form/dataForm';
 import Req, { prefix } from '@/utils/request';
-import { CheckOutlined, RollbackOutlined } from '@ant-design/icons';
+import {
+  CheckOutlined,
+  RollbackOutlined,
+  UserSwitchOutlined,
+} from '@ant-design/icons';
 import 'dayjs/plugin/relativeTime';
 import { tabItem } from '@/define/exp';
+import DrawerSelectUserOne from '@/components/drawerSelectUser';
 
 interface defaultField {
   _id: string;
@@ -68,9 +73,11 @@ const v = () => {
   const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(10);
+  const [tab, setTab] = useState<tabItem>(tabs[0]);
+  const [show, setShow] = useState<boolean>(false);
   const success = useRef<boolean>(false);
   const cover = useRef<boolean>(false);
-  const [tab, setTab] = useState<tabItem>(tabs[0]);
+  const nowSelect = useRef<task>();
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -142,6 +149,16 @@ const v = () => {
       }
     },
   });
+  const { run: putReq, loading: putLoading } = useRequest(Fetch.task.put, {
+    manual: true,
+    onSuccess: (resp) => {
+      if (resp.response.status === 200) {
+        message.success('转移成功');
+        setShow(false);
+        runFetch();
+      }
+    },
+  });
 
   const { run: changeReq, loading: changeLoading } = useRequest(
     Fetch.changeTaskSuccess,
@@ -155,6 +172,18 @@ const v = () => {
       },
     },
   );
+
+  const resetUser = (d: task) => {
+    nowSelect.current = d;
+    setShow(true);
+  };
+
+  // 分配给其他用户
+  const resetUserSelectSuccess = (id: string) => {
+    putReq(nowSelect.current?.id || nowSelect.current?._id || '', {
+      to_user: id,
+    });
+  };
 
   let columns: TableColumnsType<any> | undefined = [
     {
@@ -204,7 +233,6 @@ const v = () => {
         return <div style={{ width: 100 }}>{dayjs(text).fromNow()}</div>;
       },
     },
-
     {
       title: '类型',
       dataIndex: 'type',
@@ -226,6 +254,12 @@ const v = () => {
         return (
           <div className="px-2">
             <Space size="small">
+              {userInfo?.super && !record.success && (
+                <UserSwitchOutlined
+                  title={'分配给他人'}
+                  onClick={() => resetUser(record)}
+                />
+              )}
               {record?.allow_change_success ? (
                 record.success ? (
                   <RollbackOutlined
@@ -374,7 +408,7 @@ const v = () => {
         dataSource={data}
         columns={columns}
         rowKey={'_id'}
-        loading={loading || changeLoading}
+        loading={loading || changeLoading || putLoading}
         pagination={{
           total: total,
           current: page,
@@ -383,6 +417,14 @@ const v = () => {
         }}
         scroll={{ x: true }}
       />
+
+      {userInfo?.super && (
+        <DrawerSelectUserOne
+          show={show}
+          onCancel={setShow}
+          onSuccess={resetUserSelectSuccess}
+        />
+      )}
     </React.Fragment>
   );
 };

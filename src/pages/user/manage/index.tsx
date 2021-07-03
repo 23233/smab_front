@@ -14,15 +14,17 @@ import {
   LockOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
+import useUserPer from '@/pages/user/useUserPer';
 
 const v = () => {
-  const { userInfo, allPer, userPer } = useModel('useAuthModel');
+  const { userInfo } = useModel('useAuthModel');
   const [userList, setUserList] = useState<Array<object>>([]);
   const [show, setShow] = useState<boolean>(false);
   const [pShow, setPShow] = useState(false);
   const [editShow, setEditShow] = useState<boolean>(false);
   const [editPerShow, setEditPerShow] = useState<boolean>(false);
   const nowSelect = useRef<any>();
+  const per = useUserPer();
 
   const { run, loading } = useRequest(Fetch.getUserList, {
     manual: true,
@@ -47,7 +49,7 @@ const v = () => {
   );
 
   useEffect(() => {
-    if (userInfo?.super) {
+    if (per.get) {
       run();
     }
   }, []);
@@ -112,24 +114,30 @@ const v = () => {
     render: (text: string, record: any) => {
       return (
         <Space size="middle">
-          <UnlockOutlined
-            title={'变更密码'}
-            onClick={() => passwordShow(record)}
-          />
-          <EditOutlined
-            onClick={() => changeInfoShow(record)}
-            title={'变更信息'}
-          />
-          <DiffOutlined
-            onClick={() => changePerShow(record)}
-            title={'变更权限'}
-          />
-          <Popconfirm
-            title={'确认删除用户吗?'}
-            onConfirm={() => runDeleteUser(record)}
-          >
-            <DeleteOutlined title={'删除用户'} />
-          </Popconfirm>
+          {per.put && (
+            <React.Fragment>
+              <UnlockOutlined
+                title={'变更密码'}
+                onClick={() => passwordShow(record)}
+              />
+              <EditOutlined
+                onClick={() => changeInfoShow(record)}
+                title={'变更信息'}
+              />
+              <DiffOutlined
+                onClick={() => changePerShow(record)}
+                title={'变更权限'}
+              />
+            </React.Fragment>
+          )}
+          {per.delete && (
+            <Popconfirm
+              title={'确认删除用户吗?'}
+              onConfirm={() => runDeleteUser(record)}
+            >
+              <DeleteOutlined title={'删除用户'} />
+            </Popconfirm>
+          )}
         </Space>
       );
     },
@@ -174,7 +182,8 @@ const v = () => {
     <div>
       <div className={'mb-2'}>
         <Space>
-          <Button onClick={() => setShow(true)}>新增用户</Button>
+          {per.post && <Button onClick={() => setShow(true)}>新增用户</Button>}
+
           <Button onClick={() => run()}>刷新</Button>
         </Space>
       </div>
