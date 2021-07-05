@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Drawer, Row, Card, List, Image } from 'antd';
 import { taskPackage } from '@/define/exp';
 import ReactDOM from 'react-dom';
+import ReactJson from 'react-json-view';
 
 const { Meta } = Card;
 
@@ -45,7 +46,7 @@ const DrawerShowTaskContent: React.FC<p> = ({ contents, ...props }) => {
     // 过滤出图片
     const imgs = contents.filter((d) => d.type === 'img');
     const texts = contents.filter((d) => d.type === 'text');
-
+    const jsons = contents.filter((d) => d.type === 'json');
     return (
       <React.Fragment>
         <h4>图片内容</h4>
@@ -90,6 +91,31 @@ const DrawerShowTaskContent: React.FC<p> = ({ contents, ...props }) => {
             renderItem={(item) => (
               <List.Item>
                 <Card title={item.title}>{item.value}</Card>
+              </List.Item>
+            )}
+          />
+        )}
+        <h4>json内容</h4>
+        {!!jsons?.length && (
+          <List
+            grid={{
+              gutter: 16,
+              xs: 1,
+              sm: 1,
+              md: 2,
+              lg: 2,
+              xl: 2,
+              xxl: 3,
+            }}
+            dataSource={jsons}
+            renderItem={(item) => (
+              <List.Item>
+                <ReactJson
+                  src={JSON.parse(item.value)}
+                  name={null}
+                  displayDataTypes={false}
+                  displayObjectSize={false}
+                />
               </List.Item>
             )}
           />
