@@ -16,7 +16,7 @@ import { useModel } from '@@/plugin-model/useModel';
 import dayjs from 'dayjs';
 import { openDataForm } from '@/components/form/open';
 import { field } from '@/components/form/dataForm';
-import Req, { prefix } from '@/utils/request';
+import Req from '@/utils/request';
 import {
   CheckOutlined,
   RollbackOutlined,
@@ -335,10 +335,12 @@ const v = () => {
     data['sm_user_id'] = userInfo.id;
     console.log('进行提交', data, active);
     // 发起请求
-    const resp = await Req.post('/api' + active.req_uri, {
+    const resp = await Req.post(active.req_uri, {
       data: data,
     });
-    message.success('处理' + (resp.response.status === 200 ? '成功' : '失败'));
+    if (resp.response.status === 200) {
+      message.success('处理成功');
+    }
     console.log('resp', resp);
   };
 
