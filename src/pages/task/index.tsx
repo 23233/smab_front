@@ -164,19 +164,16 @@ const v = () => {
     {
       title: 'id',
       dataIndex: '_id',
-      render: (text) => {
-        return <div style={{ width: 100 }}>{text}</div>;
-      },
-    },
-    {
-      title: '内容',
-      render: (_, record: task) => {
+      render: (text, record) => {
         return (
-          <div
-            style={{ width: 60, color: 'blue' }}
-            onClick={() => viewContentClick(record)}
-          >
-            查看内容
+          <div style={{ width: 100 }}>
+            {text}
+            <div
+              style={{ color: 'blue', cursor: 'pointer' }}
+              onClick={() => viewContentClick(record)}
+            >
+              查看内容
+            </div>
           </div>
         );
       },
@@ -191,41 +188,30 @@ const v = () => {
     {
       title: '描述',
       dataIndex: 'desc',
-      render: (text) => {
-        return <div style={{ width: 100 }}>{text}</div>;
+      render: (text, record) => {
+        return (
+          <div style={{ width: 100 }}>
+            <div>{text}</div>
+            <div>类型:{record?.type}</div>
+          </div>
+        );
       },
     },
     {
-      title: '过期时间',
-      dataIndex: 'exp_time',
-      render: (text: string) => {
+      title: '时间',
+      render: (text: string, record: task) => {
         let t = '永不过期';
         // 判断年份超过2020年
-        if (dayjs(text).year() > 2000) {
-          t = dayjs(text).diff(dayjs(), 'm') + '秒';
+        if (dayjs(record?.exp_time).year() > 2000) {
+          t = dayjs(record?.exp_time).diff(dayjs(), 'm') + '秒';
         }
-        return <div style={{ width: 100 }}>{t}</div>;
-      },
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'create_at',
-      render: (text) => {
-        return <div style={{ width: 100 }}>{dayjs(text).fromNow()}</div>;
-      },
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'update_at',
-      render: (text) => {
-        return <div style={{ width: 100 }}>{dayjs(text).fromNow()}</div>;
-      },
-    },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      render: (text) => {
-        return <div style={{ width: 40 }}>{text}</div>;
+        return (
+          <div style={{ width: 130, fontSize: 12 }}>
+            <div style={{ color: 'red' }}>过期时间:{t}</div>
+            <div>创建时间:{dayjs(record?.create_at).fromNow()}</div>
+            <div>更新时间:{dayjs(record?.update_at).fromNow()}</div>
+          </div>
+        );
       },
     },
     {
@@ -235,52 +221,65 @@ const v = () => {
         return <div style={{ width: 100 }}>{text}</div>;
       },
     },
-    {
-      title: '操作',
-      fixed: 'right',
-      render: (text: string, record: task) => {
-        return (
-          <div className="px-2">
-            <Space size="small">
-              {userInfo?.super && !record.success && (
-                <UserSwitchOutlined
-                  title={'分配给他人'}
-                  onClick={() => resetUser(record)}
-                />
-              )}
-              {record?.allow_change_success ? (
-                record.success ? (
-                  <RollbackOutlined
-                    title={'重新处理'}
-                    onClick={() => activeChangeSuccess(record, !record.success)}
-                  />
-                ) : (
-                  <CheckOutlined
-                    title={'处理完成'}
-                    onClick={() => activeChangeSuccess(record, !record.success)}
-                  />
-                )
-              ) : null}
-
-              {!success.current &&
-                record.action?.map((d, i) => {
-                  return (
-                    <Button
-                      size={'small'}
-                      title={d.name}
-                      key={i}
-                      onClick={() => activeClick(d, record)}
-                    >
-                      {d.name}
-                    </Button>
-                  );
-                })}
-            </Space>
-          </div>
-        );
-      },
-    },
   ];
+
+  // 如果是已处理显示处理结果说明
+  if (tab.id === 'off') {
+    columns.push({
+      title: '处理结果',
+      dataIndex: 'msg',
+      render: (text) => {
+        return <div style={{ width: 100 }}>{text}</div>;
+      },
+    });
+  }
+
+  // 新增操作信息
+  columns.push({
+    title: '操作',
+    fixed: 'right',
+    render: (text: string, record: task) => {
+      return (
+        <div className="px-2">
+          <Space size="small">
+            {userInfo?.super && !record.success && (
+              <UserSwitchOutlined
+                title={'分配给他人'}
+                onClick={() => resetUser(record)}
+              />
+            )}
+            {record?.allow_change_success ? (
+              record.success ? (
+                <RollbackOutlined
+                  title={'重新处理'}
+                  onClick={() => activeChangeSuccess(record, !record.success)}
+                />
+              ) : (
+                <CheckOutlined
+                  title={'处理完成'}
+                  onClick={() => activeChangeSuccess(record, !record.success)}
+                />
+              )
+            ) : null}
+
+            {!success.current &&
+              record.action?.map((d, i) => {
+                return (
+                  <Button
+                    size={'small'}
+                    title={d.name}
+                    key={i}
+                    onClick={() => activeClick(d, record)}
+                  >
+                    {d.name}
+                  </Button>
+                );
+              })}
+          </Space>
+        </div>
+      );
+    },
+  });
 
   const activeClick = (active: actionItem, record: task) => {
     console.log('active点击', active);
@@ -340,6 +339,8 @@ const v = () => {
     });
     if (resp.response.status === 200) {
       message.success('处理成功');
+
+      runRefresh();
     }
     console.log('resp', resp);
   };

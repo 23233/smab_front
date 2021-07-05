@@ -1,6 +1,7 @@
 export interface tabItem {
   id: string | number;
   label: string;
+
   [key: string]: any;
 }
 
@@ -36,6 +37,7 @@ export interface taskPackage {
 export interface task extends defaultField {
   name: string;
   desc?: string;
+  msg?: string; // 操作结果
   type: number;
   allow_change_success: boolean;
   exp_time: string;
