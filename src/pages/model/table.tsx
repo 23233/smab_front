@@ -37,6 +37,7 @@ interface fieldInfo {
   full_name: string;
   full_map_name: string;
   params_key: string;
+  comment: string;
   level: string;
   kind: string;
   bson: Array<string>;
@@ -223,7 +224,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
       if (d?.children?.length) {
         if (!d.is_inline) {
           columns?.push({
-            title: d.name,
+            title: d.comment || d.name,
             render: (_, record) => {
               return (
                 <div
@@ -240,7 +241,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         }
         d.children.map((b) => {
           return columns?.push({
-            title: b.name,
+            title: b.comment || b.name,
             dataIndex: b.map_name,
             render: (text) => {
               if (Array.isArray(text)) {
@@ -261,13 +262,13 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
       if (d.is_inline) {
         return columns?.push({
-          title: d.name,
+          title: d.comment || d.name,
           dataIndex: d.map_name,
         });
       }
 
       return columns?.push({
-        title: d.name,
+        title: d.comment || d.name,
         dataIndex: d.map_name,
         render: (text) => {
           if (Array.isArray(text)) {

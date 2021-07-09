@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useModel } from 'umi';
 import { useSelections, useUpdateEffect } from 'ahooks';
 import { Tree } from 'antd';
+import { DataNode } from 'rc-tree/lib/interface';
 
 interface p {
   onChange?: (checkKeys: React.Key[]) => void;
@@ -35,6 +36,10 @@ const AllPerSelect: React.FC<p> = ({ onChange, ...props }) => {
           defaultExpandAll={true}
           // @ts-ignore
           onCheck={onCheck}
+          titleRender={(node: DataNode) => {
+            // @ts-ignore
+            return node?.alias || node.title;
+          }}
           checkedKeys={checkedKeys}
           treeData={treeData}
         />

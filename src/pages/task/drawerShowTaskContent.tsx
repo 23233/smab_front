@@ -49,76 +49,82 @@ const DrawerShowTaskContent: React.FC<p> = ({ contents, ...props }) => {
     const jsons = contents.filter((d) => d.type === 'json');
     return (
       <React.Fragment>
-        <h4>图片内容</h4>
         {!!imgs?.length && (
-          <List
-            grid={{
-              gutter: 16,
-              xs: 1,
-              sm: 2,
-              md: 3,
-              lg: 4,
-              xl: 5,
-              xxl: 5,
-            }}
-            dataSource={imgs}
-            renderItem={(item) => (
-              <List.Item>
-                <Card
-                  hoverable
-                  cover={<Image alt={item.title} src={item.value} />}
-                >
-                  <Meta title={item.title} />
-                </Card>
-              </List.Item>
-            )}
-          />
+          <React.Fragment>
+            <h4>图片内容</h4>
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 2,
+                md: 3,
+                lg: 4,
+                xl: 5,
+                xxl: 5,
+              }}
+              dataSource={imgs}
+              renderItem={(item) => (
+                <List.Item>
+                  <Card
+                    hoverable
+                    cover={<Image alt={item.title} src={item.value} />}
+                  >
+                    <Meta title={item.title} />
+                  </Card>
+                </List.Item>
+              )}
+            />
+          </React.Fragment>
         )}
-        <h4>文字内容</h4>
 
         {!!texts?.length && (
-          <List
-            grid={{
-              gutter: 16,
-              xs: 1,
-              sm: 2,
-              md: 3,
-              lg: 4,
-              xl: 5,
-              xxl: 5,
-            }}
-            dataSource={texts}
-            renderItem={(item) => (
-              <List.Item>
-                <Card title={item.title}>{item.value}</Card>
-              </List.Item>
-            )}
-          />
+          <React.Fragment>
+            <h4>文字内容</h4>
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 2,
+                md: 3,
+                lg: 4,
+                xl: 5,
+                xxl: 5,
+              }}
+              dataSource={texts}
+              renderItem={(item) => (
+                <List.Item>
+                  <Card title={item.title}>{item.value}</Card>
+                </List.Item>
+              )}
+            />
+          </React.Fragment>
         )}
-        <h4>json内容</h4>
         {!!jsons?.length && (
-          <List
-            grid={{
-              gutter: 16,
-              xs: 1,
-              sm: 1,
-              md: 2,
-              lg: 2,
-              xl: 2,
-              xxl: 3,
-            }}
-            dataSource={jsons}
-            renderItem={(item) => (
-              <List.Item>
-                <ReactJson
-                  src={JSON.parse(item.value)}
-                  name={null}
-                  displayDataTypes={false}
-                  displayObjectSize={false}
-                />
-              </List.Item>
-            )}
-          />
+          <React.Fragment>
+            <h4>json内容</h4>
+            <List
+              grid={{
+                gutter: 16,
+                xs: 1,
+                sm: 1,
+                md: 2,
+                lg: 2,
+                xl: 2,
+                xxl: 3,
+              }}
+              dataSource={jsons}
+              renderItem={(item) => (
+                <List.Item>
+                  <ReactJson
+                    src={JSON.parse(item.value)}
+                    name={null}
+                    displayDataTypes={false}
+                    displayObjectSize={false}
+                  />
+                </List.Item>
+              )}
+            />
+          </React.Fragment>
         )}
       </React.Fragment>
     );

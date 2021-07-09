@@ -9,7 +9,7 @@ interface p {}
 
 // 模型信息编辑
 const V: React.FC<p> = ({ ...props }) => {
-  const { userInfo, userPer } = useModel('useAuthModel');
+  const { userPer } = useModel('useAuthModel');
   const [tabs, setTabs] = useState<Array<tabItem>>([]);
   const [tab, setTab] = useState<tabItem>();
 
@@ -23,20 +23,17 @@ const V: React.FC<p> = ({ ...props }) => {
           d?.children?.map((b: any) => {
             // 判断是否有get权限
             if (b.children.some((c: any) => c.title === 'get')) {
-              tt.push(b.title);
+              tt.push({
+                id: b.title,
+                label: b?.alias || b.title,
+              });
             }
           });
         }
       });
-      const tabList = tt.map((d: string) => {
-        return {
-          id: d,
-          label: d,
-        };
-      });
-      setTabs(tabList);
+      setTabs(tt);
       if (!tab && !location.query?.model) {
-        setTab(tabList[0]);
+        setTab(tt[0]);
       }
     }
   }, [userPer]);
@@ -75,7 +72,7 @@ const V: React.FC<p> = ({ ...props }) => {
         })}
       </div>
 
-      {!!tab && <ModelTableView modelName={tab.label} />}
+      {!!tab && <ModelTableView modelName={tab.id as string} />}
     </React.Fragment>
   );
 };
