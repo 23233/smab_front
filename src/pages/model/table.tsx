@@ -219,6 +219,33 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
   let columns: TableColumnsType<any> | undefined = [];
 
+  const renderArray = (text: any, record: any) => {
+    return (
+      <div style={{ width: 200, wordBreak: 'break-all' }}>
+        {Array.isArray(text)
+          ? text?.map((vv: string, i: number) => {
+              return (
+                <div
+                  key={i}
+                  style={{
+                    border: '1px solid #eee',
+                    padding: '2px 5px',
+                    fontSize: 12,
+                    color: 'black',
+                    background: '#f1f1f1',
+                    borderRadius: 5,
+                    marginBottom: 5,
+                  }}
+                >
+                  {vv}
+                </div>
+              );
+            })
+          : text}
+      </div>
+    );
+  };
+
   if (data.length && modelInfo?.field_list?.length) {
     modelInfo?.field_list.map((d) => {
       if (d?.children?.length) {
@@ -227,12 +254,14 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
             title: d.comment || d.name,
             render: (_, record) => {
               return (
-                <div
-                  onClick={() =>
-                    showStruct(record[d.map_name], d.name + '字段信息')
-                  }
-                >
-                  {d.children.length} 个字段
+                <div style={{ width: 100 }}>
+                  <div
+                    onClick={() =>
+                      showStruct(record[d.map_name], d.name + '字段信息')
+                    }
+                  >
+                    {d.children.length} 个字段
+                  </div>
                 </div>
               );
             },
@@ -243,18 +272,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           return columns?.push({
             title: b.comment || b.name,
             dataIndex: b.map_name,
-            render: (text) => {
-              if (Array.isArray(text)) {
-                return (
-                  <Space>
-                    {text?.map((vv: string, i: number) => {
-                      return <Tag key={i}>{vv}</Tag>;
-                    })}
-                  </Space>
-                );
-              }
-              return text;
-            },
+            render: renderArray,
           });
         });
         return;
@@ -264,24 +282,16 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
         return columns?.push({
           title: d.comment || d.name,
           dataIndex: d.map_name,
+          render: (text) => {
+            return <div style={{ width: 200 }}>{text}</div>;
+          },
         });
       }
 
       return columns?.push({
         title: d.comment || d.name,
         dataIndex: d.map_name,
-        render: (text) => {
-          if (Array.isArray(text)) {
-            return (
-              <Space>
-                {text?.map((vv: string, i: number) => {
-                  return <Tag key={i}>{vv}</Tag>;
-                })}
-              </Space>
-            );
-          }
-          return text;
-        },
+        render: renderArray,
       });
     });
   }

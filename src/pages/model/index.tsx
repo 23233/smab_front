@@ -4,6 +4,7 @@ import useRealLocation from '@/components/useRealLocation';
 import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
 import ModelTableView from '@/pages/model/table';
 import { tabItem } from '@/define/exp';
+import { sortBy } from 'lodash';
 
 interface p {}
 
@@ -20,7 +21,8 @@ const V: React.FC<p> = ({ ...props }) => {
       const tt = [] as any;
       userPer.map((d: any) => {
         if (d.key === 'model_i') {
-          d?.children?.map((b: any) => {
+          // 因为golang map无序 所以使用英文顺序排名进行固定排序
+          sortBy(d?.children, ['key'])?.map((b: any) => {
             // 判断是否有get权限
             if (b.children.some((c: any) => c.title === 'get')) {
               tt.push({
