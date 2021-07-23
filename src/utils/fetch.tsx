@@ -72,6 +72,10 @@ const req = {
       params: params,
     });
   },
+  // 获取微前端列表
+  getQiankunConfig: () => {
+    return Req.get(`${v}/qiankun`);
+  },
 };
 
 const Fetch = {

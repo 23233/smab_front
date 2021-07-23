@@ -81,7 +81,21 @@ export default function (props) {
   };
 
   const postMenus = (menus) => {
-    // todo 加载用户的微前端路径
+    // console.log('menus', menus);
+    // console.log('qiankun', window?.s_qk);
+    if (window?.s_qk) {
+      window?.s_qk?.map((d) => {
+        if (menus.some((b) => b.path === d?.path)) {
+        } else {
+          // todo 新增component 否则会直接跳转空白页 不会注入
+          menus.push({
+            path: d?.path,
+            name: d?.label,
+            key: new Date().getTime(),
+          });
+        }
+      });
+    }
     return menus;
   };
 

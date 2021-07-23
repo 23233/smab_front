@@ -4,30 +4,7 @@ import { Routes } from './src/router';
 // @ts-ignore
 const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV);
 
-const loadTailwindCss = [
-  require('tailwindcss'),
-  require('postcss-nested'),
-  require('tailwind-one')({
-    platform: 'h5',
-    rule: { h5: [] },
-    // threshold: {
-    //   h5: 20,
-    // },
-  }),
-  require('autoprefixer'),
-];
-
-if (IS_PROD) {
-  // loadTailwindCss.push(
-  //   require('@fullhuman/postcss-purgecss')({
-  //     content: ['./src/pages/**/*.tsx','./src/components/**/*.tsx'],
-  //     css:["./src/app.less"],
-  //     safelist: [/^ant/],
-  //   }),
-  // );
-}
-const extraPostCss = [...loadTailwindCss];
-
+// @ts-ignore
 export default defineConfig({
   nodeModulesTransform: {
     type: 'none',
@@ -42,11 +19,15 @@ export default defineConfig({
     logLevel: 'info',
     defaultSizes: 'parsed', // stat  // gzip
   },
+  qiankun: {
+    master: {},
+  },
   title: false,
   // mfsu: {},
   proxy: {
     '/api/': {
       target: 'http://127.0.0.1:8080',
+      // target: 'http://127.0.0.1:7780',
       changeOrigin: true,
       pathRewrite: {
         '^/api/': '',
