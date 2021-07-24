@@ -15,7 +15,7 @@ import { uniqBy } from 'lodash';
 import { useModel } from '@@/plugin-model/useModel';
 import dayjs from 'dayjs';
 import { openDataForm } from '@/components/form/open';
-import { field } from '@/components/form/dataForm';
+import { field } from '@/components/form/commForm';
 import Req from '@/utils/request';
 import {
   CheckOutlined,

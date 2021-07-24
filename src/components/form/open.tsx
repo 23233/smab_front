@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 import React from 'react';
-import CommForm, { formParams } from '@/components/form/dataForm';
+import CommForm, { formParams } from '@/components/form/commForm';
 
 export const openDataForm = (p: formParams) => {
   const div = document.createElement('div');

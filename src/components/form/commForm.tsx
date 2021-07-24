@@ -15,6 +15,7 @@ import {
   Select,
   Spin,
   Space,
+  Divider,
 } from 'antd';
 import { Rule } from 'rc-field-form/lib/interface';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
@@ -40,6 +41,7 @@ export interface field {
   placeholder?: string;
   slice?: string;
   initKey?: string; // 修改时比对用
+  children?: Array<field>;
 }
 
 interface kv {
@@ -76,7 +78,7 @@ export const formItemLayoutWithOutLabel = {
 const formItemAddBtnWithOutLabel = {
   wrapperCol: {
     xs: { span: 16, offset: 0 },
-    sm: { span: 8, offset: 4 },
+    sm: { span: 16, offset: 4 },
   },
 };
 
@@ -184,8 +186,8 @@ const CommForm: React.FC<formParams> = ({
   };
 
   // 单个
-  const TypeToElement = (k: field) => {
-    // console.log('type to element', k);
+  const TypeToElement = (k: field, name?: number, fieldKey?: number) => {
+    // console.log('type to element', k, name, fieldKey);
     let required = !!k?.required;
     const t = k.types;
     const valueProp = t === 'bool' ? 'checked' : 'value';
@@ -200,25 +202,30 @@ const CommForm: React.FC<formParams> = ({
     if (!!k?.rules) {
       rules.push(k.rules);
     }
+    const params = {
+      name: k.map_name,
+      label: k?.label || k.map_name,
+      valuePropName: valueProp,
+      rules: rules,
+    } as any;
+    if (name) {
+      params.name = [name, k.map_name];
+    }
+    if (fieldKey) {
+      params.fieldKey = [fieldKey, k.map_name];
+    }
 
     return (
-      <Form.Item
-        {...formItemLayout}
-        name={k.map_name}
-        label={k?.label || k.map_name}
-        valuePropName={valueProp}
-        rules={rules}
-      >
+      <Form.Item {...formItemLayout} {...params} key={params.name.toString()}>
         {ele}
       </Form.Item>
     );
   };
 
   // 群组
-  const SliceToElement = (k: field) => {
+  const SliceToElement = (k: field, name?: number, fieldKey?: number) => {
     let required = !!k?.required;
     const t = k.types.replaceAll('[', '').replaceAll(']', '');
-    const valueProp = t === 'bool' ? 'checked' : 'value';
     let ele = typeGetElement(t, k.placeholder);
 
     const rules = [
@@ -231,54 +238,59 @@ const CommForm: React.FC<formParams> = ({
       rules.push(k.rules);
     }
 
+    const params = {
+      name: k.map_name,
+      rules: rules,
+    } as any;
+    if (name) {
+      params.name = [name, k.map_name];
+    }
+    if (fieldKey) {
+      params.fieldKey = [fieldKey, k.map_name];
+    }
+
     return (
-      <React.Fragment>
-        <Form.List name={k.map_name}>
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map((field, index) => (
-                <Form.Item
-                  {...(index === 0
-                    ? formItemLayout
-                    : formItemLayoutWithOutLabel)}
-                  label={index === 0 ? k?.label || k.map_name : ''}
-                  required={required}
-                  key={field.key}
-                >
-                  <div className={'flex'}>
-                    <div>
-                      <Form.Item
-                        {...field}
-                        validateTrigger={['onChange', 'onBlur']}
-                        rules={rules}
-                        noStyle
-                      >
-                        {ele}
-                      </Form.Item>
-                    </div>
-                    {fields.length > 1 && (
-                      <MinusCircleOutlined
-                        className="dynamic-delete-button"
-                        onClick={() => remove(field.name)}
-                      />
-                    )}
+      <Form.List {...params}>
+        {(fields, { add, remove }) => (
+          <>
+            {fields.map((field, index) => (
+              <Form.Item
+                {...(index === 0 ? formItemLayout : formItemLayoutWithOutLabel)}
+                label={index === 0 ? k?.label || k.map_name : ''}
+                required={required}
+                key={field.key}
+              >
+                <div className={'flex'}>
+                  <div>
+                    <Form.Item
+                      {...field}
+                      validateTrigger={['onChange', 'onBlur']}
+                      rules={rules}
+                      noStyle
+                    >
+                      {ele}
+                    </Form.Item>
                   </div>
-                </Form.Item>
-              ))}
-              <Form.Item {...formItemAddBtnWithOutLabel}>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
-                >
-                  新增{k?.label}
-                </Button>
+                  <MinusCircleOutlined
+                    className="dynamic-delete-button"
+                    onClick={() => remove(field.name)}
+                  />
+                </div>
               </Form.Item>
-            </>
-          )}
-        </Form.List>
-      </React.Fragment>
+            ))}
+            <Form.Item {...formItemAddBtnWithOutLabel}>
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                block
+                icon={<PlusOutlined />}
+              >
+                新增{k?.label || k?.map_name}
+              </Button>
+            </Form.Item>
+          </>
+        )}
+      </Form.List>
     );
   };
 
@@ -388,6 +400,67 @@ const CommForm: React.FC<formParams> = ({
     setShow(false);
   };
 
+  const renderChildren = (field: field) => {
+    return (
+      <React.Fragment>
+        <Divider>{field?.label || field.map_name}</Divider>
+        <Form.List name={field.map_name} key={field.map_name}>
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, fieldKey, ...restField }, i) => (
+                <div key={`${field.map_name}_${key}_${i}`}>
+                  {field.children?.map((b) => {
+                    if (b?.children) {
+                      return renderChildren(b);
+                    }
+                    if (!!b?.slice && b?.slice === 'slice') {
+                      return SliceToElement(b, name, fieldKey);
+                    }
+                    return TypeToElement(b, name, fieldKey);
+                  })}
+                  <Form.Item {...formItemAddBtnWithOutLabel}>
+                    <Button
+                      icon={<MinusCircleOutlined />}
+                      type="dashed"
+                      block
+                      onClick={() => remove(name)}
+                    >
+                      删除{field?.label || field.map_name}
+                    </Button>
+                  </Form.Item>
+                </div>
+              ))}
+              <Form.Item {...formItemAddBtnWithOutLabel}>
+                <Button
+                  type="dashed"
+                  onClick={() => add()}
+                  block
+                  icon={<PlusOutlined />}
+                >
+                  新增{field.label || field.map_name}
+                </Button>
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
+      </React.Fragment>
+    );
+  };
+
+  const renderContent = () => {
+    return fieldsList.map((k, i) => {
+      return (
+        <React.Fragment key={i}>
+          {k?.children?.length
+            ? renderChildren(k)
+            : !!k?.slice && k?.slice === 'slice'
+            ? SliceToElement(k)
+            : TypeToElement(k)}
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <Drawer
       visible={show}
@@ -407,15 +480,7 @@ const CommForm: React.FC<formParams> = ({
           onFinish={runCreate}
           initialValues={initialValues}
         >
-          {fieldsList.map((k, i) => {
-            return (
-              <React.Fragment key={i}>
-                {!!k?.slice && k?.slice === 'slice'
-                  ? SliceToElement(k)
-                  : TypeToElement(k)}
-              </React.Fragment>
-            );
-          })}
+          {renderContent()}
           {children}
           <Form.Item {...formItemLayoutWithOutLabel}>
             <Button type="primary" htmlType="submit" className={'mr-2'}>

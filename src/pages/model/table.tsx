@@ -12,7 +12,7 @@ import {
   TableColumnsType,
   Tag,
 } from 'antd';
-import CommForm, { field } from '@/components/form/dataForm';
+import CommForm, { field } from '@/components/form/commForm';
 import {
   CompressOutlined,
   DeleteOutlined,
@@ -68,6 +68,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(10);
+  const [docTotal, setDocTotal] = useState<number>();
   const [modelInfo, setModelInfo] = useState<modelInfo>();
   const [show, setShow] = useState<boolean>(false); // 新增
   const cover = useRef<boolean>(false);
@@ -127,9 +128,6 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     {
       manual: true,
       onSuccess: (resp) => {
-        if (resp.data?.data?.length >= resp.data?.page_size) {
-          setTotal(total + resp.data?.page_size);
-        }
         if (resp.response.status === 200) {
           if (cover.current) {
             setData(resp?.data?.data);
@@ -140,6 +138,8 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           }
           setPage(resp.data?.page);
           setPageSize(resp.data?.page_size);
+          setTotal(resp?.data?.count);
+          setDocTotal(resp?.data?.doc_count);
         }
       },
     },
@@ -489,6 +489,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           pageSize: pageSize,
           onChange: pageChange,
         }}
+        footer={() => `模型总量:${docTotal}条`}
         scroll={{ x: true }}
       />
 
