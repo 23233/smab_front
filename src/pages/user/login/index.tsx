@@ -18,16 +18,15 @@ export default (props: any) => {
 
   const { run, loading } = useRequest(Fetch.accountLogin, {
     manual: true,
-    onSuccess: (resp => {
+    onSuccess: (resp) => {
       if (resp.response.status === 200) {
         message.success(`登录成功`);
         signin(resp?.data?.token, resp?.data?.user);
         // @ts-ignore
-        history.push(location?.query?.redirect || ROUTERS.task)
+        window.location.href = location?.query?.redirect || ROUTERS.task;
       }
-    }),
+    },
   });
-
 
   const onFinish = (values: any) => {
     run(values);
@@ -35,32 +34,42 @@ export default (props: any) => {
 
   return (
     <div className={Style.bg}>
-      <Row align='middle' justify='center'>
+      <Row align="middle" justify="center">
         <Col>
           <div className={Style.w}>
-            <Title level={1} className={Style.title}>{(window as any)?.smab?.name}</Title>
+            <Title level={1} className={Style.title}>
+              {(window as any)?.smab?.name}
+            </Title>
             <Form
               autoComplete={'off'}
-              name='basic'
+              name="basic"
               size={'large'}
               onFinish={onFinish}
             >
               <Form.Item
-                name='user_name'
+                name="user_name"
                 rules={[{ required: true, message: '请输入用户名' }]}
               >
                 <Input prefix={<UserOutlined />} placeholder={'请输入用户名'} />
               </Form.Item>
 
               <Form.Item
-                name='password'
+                name="password"
                 rules={[{ required: true, message: '请输入密码' }]}
               >
-                <Input.Password prefix={<LockOutlined />} placeholder={'请输入密码'} />
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder={'请输入密码'}
+                />
               </Form.Item>
 
               <Form.Item>
-                <Button type='primary' loading={loading} htmlType='submit' block>
+                <Button
+                  type="primary"
+                  loading={loading}
+                  htmlType="submit"
+                  block
+                >
                   登录
                 </Button>
               </Form.Item>
@@ -68,9 +77,6 @@ export default (props: any) => {
           </div>
         </Col>
       </Row>
-
     </div>
-
   );
 };
-
