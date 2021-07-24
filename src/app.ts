@@ -21,8 +21,6 @@ if (token) {
   }
 }
 
-let extraRoutes: object[] = [];
-
 const qkGet = fetch(`${v}/qiankun`, {
   headers: {
     Authorization: token ? `Bearer ${token}` : '',

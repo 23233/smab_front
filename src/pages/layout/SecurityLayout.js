@@ -18,7 +18,7 @@ export default function (props) {
       pathname: Router.login,
       query: {
         // todo 可选新增参数传递
-        redirect: props.location?.pathname,
+        redirect: window.location.href,
       },
     });
   }

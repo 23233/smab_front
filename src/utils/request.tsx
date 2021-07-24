@@ -57,7 +57,7 @@ const errorHandler = async (error: any) => {
       history.push({
         pathname: Router.login,
         query: {
-          redirect: window.location.pathname,
+          redirect: window.location.href,
         },
       });
       return error;
