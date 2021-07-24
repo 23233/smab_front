@@ -9,6 +9,7 @@ import BasicLayout from '@ant-design/pro-layout';
 import ChangePasswordModal from '../../components/changePassword';
 
 export default function (props) {
+  // console.log('layout props', props);
   const { userToken, userInfo, signout } = useModel('useAuthModel');
   const [pShow, setPShow] = useState(false);
 
@@ -34,6 +35,9 @@ export default function (props) {
   const menuItemRender = (menuItemProps, defaultDom) => {
     if (menuItemProps.isUrl || menuItemProps.children || !menuItemProps.path) {
       return defaultDom;
+    }
+    if (menuItemProps?.microApp) {
+      // console.log('微前端', menuItemProps);
     }
     return <Link to={menuItemProps.path}>{defaultDom}</Link>;
   };
@@ -81,21 +85,6 @@ export default function (props) {
   };
 
   const postMenus = (menus) => {
-    // console.log('menus', menus);
-    // console.log('qiankun', window?.s_qk);
-    if (window?.s_qk) {
-      window?.s_qk?.map((d) => {
-        if (menus.some((b) => b.path === d?.path)) {
-        } else {
-          // todo 新增component 否则会直接跳转空白页 不会注入
-          menus.push({
-            path: d?.path,
-            name: d?.label,
-            key: new Date().getTime(),
-          });
-        }
-      });
-    }
     return menus;
   };
 

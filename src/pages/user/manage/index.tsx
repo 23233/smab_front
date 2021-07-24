@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Table, Space, Button, Popconfirm, message } from 'antd';
+import { Table, Space, Button, Popconfirm, message, Popover, Tag } from 'antd';
 import { useModel } from 'umi';
 import { useRequest } from 'ahooks';
 import Fetch from '@/utils/fetch';
@@ -59,54 +59,94 @@ const v = () => {
       title: 'id',
       dataIndex: 'id',
       key: 'id',
-      render: (text: string) => {
-        return <div style={{ width: 100 }}>{text}</div>;
+      render: (text: string, record: any) => {
+        return (
+          <div style={{ width: 100 }}>
+            {text}
+            <Popover
+              content={record?.create_id}
+              title={'账户创建者Id'}
+              trigger={['click']}
+            >
+              <div className={'text-gray-400'}>创建者</div>
+            </Popover>
+          </div>
+        );
       },
     },
     {
       title: '姓名',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string) => {
-        return <div style={{ width: 100 }}>{text}</div>;
+      render: (text: string, record: any) => {
+        return (
+          <div style={{ width: 100 }}>
+            {text}
+            {!!record?.super_user && (
+              <div>
+                <Tag>管理员</Tag>
+              </div>
+            )}
+          </div>
+        );
       },
     },
     {
-      title: '简介',
+      title: '描述',
       dataIndex: 'desc',
       key: 'desc',
-      render: (text: string) => {
-        return <div style={{ width: 100 }}>{text}</div>;
+      render: (text: string, record: any) => {
+        return (
+          <div style={{ width: 100 }}>
+            <div>{text}</div>
+            <div>{record?.phone}</div>
+          </div>
+        );
       },
     },
     {
-      title: '电话',
-      dataIndex: 'phone',
-      key: 'phone',
-      render: (text: string) => {
-        return <div style={{ width: 100 }}>{text}</div>;
-      },
-    },
-    {
-      title: '创建者',
-      dataIndex: 'create_id',
-      key: 'create_id',
-      render: (text: string) => {
-        return <div style={{ width: 100 }}>{text}</div>;
+      title: '子应用',
+      render: (record: any) => {
+        return (
+          <div style={{ width: 200 }}>
+            {!!record?.qian_kun?.length &&
+              record?.qian_kun?.map((b: any, i: number) => {
+                return (
+                  <Space key={i}>
+                    <Popover
+                      content={
+                        <div>
+                          <div>
+                            <span className={'text-gray-400'}>应用英文名:</span>
+                            {b?.name}
+                          </div>
+                          <div>
+                            <span className={'text-gray-400'}>应用中文名:</span>
+                            {b?.label}
+                          </div>
+                          <div>
+                            <span className={'text-gray-400'}>应用路径:</span>
+                            {b?.path}
+                          </div>
+                          <div>
+                            <span className={'text-gray-400'}>应用地址:</span>
+                            {b?.entry}
+                          </div>
+                        </div>
+                      }
+                      title={'应用信息'}
+                      trigger={['click']}
+                    >
+                      <Tag>{b?.label}</Tag>
+                    </Popover>
+                  </Space>
+                );
+              })}
+          </div>
+        );
       },
     },
   ] as any;
-
-  if (userInfo?.super) {
-    columns.push({
-      title: '管理员',
-      dataIndex: 'super_user',
-      key: 'super_user',
-      render: (text: boolean, record: any) => {
-        return <div style={{ width: 60 }}>{text ? '是' : '否'}</div>;
-      },
-    });
-  }
 
   columns.push({
     title: '操作',
@@ -126,7 +166,7 @@ const v = () => {
               />
               <DiffOutlined
                 onClick={() => changePerShow(record)}
-                title={'变更权限'}
+                title={'重设权限'}
               />
             </React.Fragment>
           )}
@@ -212,6 +252,7 @@ const v = () => {
           desc: nowSelect.current?.desc,
           phone: nowSelect.current?.phone,
           super_user: nowSelect.current?.super_user,
+          qian_kun: nowSelect.current?.qian_kun,
         }}
         onSuccess={changeInfoSuccess}
       />

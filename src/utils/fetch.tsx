@@ -4,7 +4,7 @@ import RestApiGen from '@/utils/restApiGen';
 
 const p = `${prefix}${(window as any)?.smab?.prefix}`;
 
-const v = p + '/v';
+export const v = p + '/v';
 
 export const C = v + '/c';
 
@@ -71,10 +71,6 @@ const req = {
     return Req.get(uri, {
       params: params,
     });
-  },
-  // 获取微前端列表
-  getQiankunConfig: () => {
-    return Req.get(`${v}/qiankun`);
   },
 };
 
