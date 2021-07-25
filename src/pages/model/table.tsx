@@ -52,7 +52,7 @@ interface fieldInfo {
   is_mab_inline: boolean;
   is_inline: boolean;
   children: Array<fieldInfo>;
-  children_kind: boolean;
+  children_kind: string;
 }
 
 interface modelInfo {
@@ -449,19 +449,70 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
   let addFormFields: Array<field> = [];
 
-  modelInfo?.flat_fields?.map((d) => {
-    if (d.is_pk || d.is_created || d.is_updated || d.kind === 'struct') {
-    } else {
-      addFormFields.push({
-        types: d.types,
-        label: d.name,
-        map_name: d.map_name,
-        required: false,
-        slice: d.kind,
-        initKey: d.params_key,
-      } as field);
+  modelInfo?.field_list?.map((d) => {
+    if (d.map_name !== 'default_field') {
+      // 数组
+      if (d.kind === 'slice') {
+        // 数组内容是struct
+        if (d.children_kind === 'struct') {
+          addFormFields.push({
+            types: d.children_kind,
+            label: d.name,
+            map_name: d.map_name,
+            slice: true,
+            initKey: d.params_key,
+            children: d?.children?.map((b) => {
+              return {
+                types: b.types,
+                label: b.name,
+                map_name: b.map_name,
+                required: false,
+                initKey: b.params_key,
+              } as field;
+            }),
+          } as field);
+        } else {
+          // 若不是struct 就定义为基本类型算了
+          addFormFields.push({
+            types: d.children_kind,
+            label: d.name,
+            map_name: d.map_name,
+            slice: true,
+            initKey: d.params_key,
+          } as field);
+        }
+      } else if (d.kind === 'struct') {
+        // 还要判断是否是时间
+        addFormFields.push({
+          types: ['time.Time', 'time', 'time.Duration'].includes(d.types)
+            ? d.types
+            : d.children_kind,
+          label: d.name,
+          map_name: d.map_name,
+          initKey: d.params_key,
+          children: d?.children?.map((b) => {
+            return {
+              types: b.types,
+              label: b.name,
+              map_name: b.map_name,
+              required: false,
+              initKey: b.params_key,
+            } as field;
+          }),
+        } as field);
+      } else {
+        addFormFields.push({
+          types: d.types,
+          label: d.name,
+          map_name: d.map_name,
+          required: false,
+          initKey: d.params_key,
+        } as field);
+      }
     }
   });
+
+  console.log('addForm', addFormFields);
 
   return (
     <React.Fragment>

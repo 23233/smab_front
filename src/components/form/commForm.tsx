@@ -20,6 +20,8 @@ import {
 import { Rule } from 'rc-field-form/lib/interface';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import './form.less';
+import FormItem, { FormItemProps } from 'antd/lib/form/FormItem';
+import fastOpenForms from '@/components/form/fast';
 
 const { Option } = Select;
 
@@ -39,7 +41,7 @@ export interface field {
   label?: string;
   rules?: Rule;
   placeholder?: string;
-  slice?: string;
+  slice?: boolean; // 数组
   initKey?: string; // 修改时比对用
   children?: Array<field>;
 }
@@ -51,8 +53,10 @@ interface kv {
 export interface formParams {
   onCreate?: (values: any) => void;
   onCancel?: Function;
+  title?: string;
   fieldsList: Array<field>;
   initValues?: kv;
+  slice?: boolean;
   loading?: boolean;
   isAction?: boolean;
   children?: React.ReactNode;
@@ -85,9 +89,11 @@ const formItemAddBtnWithOutLabel = {
 const CommForm: React.FC<formParams> = ({
   onCreate,
   onCancel,
+  title,
   fieldsList,
   initValues,
   loading,
+  slice,
   isAction,
   children,
   ...props
@@ -186,13 +192,11 @@ const CommForm: React.FC<formParams> = ({
   };
 
   // 单个
-  const TypeToElement = (k: field, name?: number, fieldKey?: number) => {
-    // console.log('type to element', k, name, fieldKey);
+  const SingleElement = (k: field, name?: number, fieldKey?: number) => {
     let required = !!k?.required;
     const t = k.types;
     const valueProp = t === 'bool' ? 'checked' : 'value';
     let ele = typeGetElement(t, k.placeholder);
-
     const rules = [
       {
         required: required,
@@ -202,31 +206,38 @@ const CommForm: React.FC<formParams> = ({
     if (!!k?.rules) {
       rules.push(k.rules);
     }
-    const params = {
+    let p = {
       name: k.map_name,
       label: k?.label || k.map_name,
       valuePropName: valueProp,
       rules: rules,
-    } as any;
+    } as FormItemProps;
+
     if (name) {
-      params.name = [name, k.map_name];
+      p.name = [name, k.map_name];
     }
     if (fieldKey) {
-      params.fieldKey = [fieldKey, k.map_name];
+      p.fieldKey = [fieldKey, k.map_name];
     }
-
     return (
-      <Form.Item {...formItemLayout} {...params} key={params.name.toString()}>
+      <Form.Item {...formItemLayout} {...p} key={k.map_name}>
         {ele}
       </Form.Item>
     );
   };
 
   // 群组
-  const SliceToElement = (k: field, name?: number, fieldKey?: number) => {
+  const SliceToElement = (k: field) => {
+    if (k.types === 'struct' || k?.children?.length) {
+      return SliceStruct(k);
+    }
+    return SliceBase(k);
+  };
+
+  // sliceBase
+  const SliceBase = (k: field) => {
     let required = !!k?.required;
-    const t = k.types.replaceAll('[', '').replaceAll(']', '');
-    let ele = typeGetElement(t, k.placeholder);
+    let ele = typeGetElement(k.types, k.placeholder);
 
     const rules = [
       {
@@ -242,12 +253,6 @@ const CommForm: React.FC<formParams> = ({
       name: k.map_name,
       rules: rules,
     } as any;
-    if (name) {
-      params.name = [name, k.map_name];
-    }
-    if (fieldKey) {
-      params.fieldKey = [fieldKey, k.map_name];
-    }
 
     return (
       <Form.List {...params}>
@@ -294,12 +299,16 @@ const CommForm: React.FC<formParams> = ({
     );
   };
 
+  // todo 继续这里
+  // 多个
+  const SliceStruct = (k: field) => {};
+
   const MomentToFormat = (values: any) => {
     Object.keys(values).map((k, i) => {
       const v = values[k];
       const t = fieldsList.find((d) => d.map_name === k);
       if (t) {
-        if (t?.slice === 'slice') {
+        if (t?.slice) {
           const tt = t.types.replaceAll('[', '').replaceAll(']', '');
           if (tt === 'time.Time' || tt === 'time') {
             let r = [] as any;
@@ -324,7 +333,7 @@ const CommForm: React.FC<formParams> = ({
       const v = values[k];
       const t = fieldsList.find((d) => d.map_name === k);
       if (t) {
-        if (t?.slice === 'slice') {
+        if (t?.slice) {
           const tt = t.types.replaceAll('[', '').replaceAll(']', '');
           let r: Array<any> = [];
           v?.map((d: any) => {
@@ -400,71 +409,50 @@ const CommForm: React.FC<formParams> = ({
     setShow(false);
   };
 
+  const childrenCreate = (field: field) => {
+    console.log('children 打开弹窗', field);
+    fastOpenForms({
+      title: `新增${field.label || field.map_name}`,
+      fieldsList: field.children || [],
+      slice: field.slice,
+      onCreate: (values) => console.log('提交', values),
+    });
+  };
+
   const renderChildren = (field: field) => {
     return (
       <React.Fragment>
-        <Divider>{field?.label || field.map_name}</Divider>
-        <Form.List name={field.map_name} key={field.map_name}>
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, fieldKey, ...restField }, i) => (
-                <div key={`${field.map_name}_${key}_${i}`}>
-                  {field.children?.map((b) => {
-                    if (b?.children) {
-                      return renderChildren(b);
-                    }
-                    if (!!b?.slice && b?.slice === 'slice') {
-                      return SliceToElement(b, name, fieldKey);
-                    }
-                    return TypeToElement(b, name, fieldKey);
-                  })}
-                  <Form.Item {...formItemAddBtnWithOutLabel}>
-                    <Button
-                      icon={<MinusCircleOutlined />}
-                      type="dashed"
-                      block
-                      onClick={() => remove(name)}
-                    >
-                      删除{field?.label || field.map_name}
-                    </Button>
-                  </Form.Item>
-                </div>
-              ))}
-              <Form.Item {...formItemAddBtnWithOutLabel}>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
-                >
-                  新增{field.label || field.map_name}
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
+        <Form.Item
+          label={field.label || field.map_name}
+          {...formItemLayout}
+          name={field.map_name}
+        >
+          <Button onClick={() => childrenCreate(field)}>新增</Button>
+        </Form.Item>
       </React.Fragment>
     );
   };
 
   const renderContent = () => {
     return fieldsList.map((k, i) => {
-      return (
-        <React.Fragment key={i}>
-          {k?.children?.length
-            ? renderChildren(k)
-            : !!k?.slice && k?.slice === 'slice'
-            ? SliceToElement(k)
-            : TypeToElement(k)}
-        </React.Fragment>
-      );
+      // 如果是数组
+      if (k.slice) {
+        // 如果是struct
+        if (k.types === 'struct') {
+          return <div key={k.map_name}>{renderChildren(k)}</div>;
+        }
+        return <div key={k.map_name}>{SliceToElement(k)}</div>;
+      } else if (k.types === 'struct') {
+        return <div key={k.map_name}>{renderChildren(k)}</div>;
+      }
+      return <div key={k.map_name}>{SingleElement(k)}</div>;
     });
   };
 
   return (
     <Drawer
       visible={show}
-      title="数据交互页"
+      title={title ? title : '数据管理页'}
       placement={'right'}
       width={'80%'}
       bodyStyle={{ padding: 10 }}

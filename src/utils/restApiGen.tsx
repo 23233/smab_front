@@ -17,14 +17,12 @@ class RestApiGen {
   post = (data: any) => {
     return Req.post(this.url, {
       data: data,
-      requestType: 'form',
     });
   };
 
   put = (mid: string, data: any) => {
     return Req.put(`${this.url}/${mid}`, {
       data: data,
-      requestType: 'form',
     });
   };
 

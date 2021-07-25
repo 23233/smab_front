@@ -23,10 +23,11 @@ export default () => {
       required: true,
       placeholder: '推荐英文',
     },
+
     {
       types: '[]string',
       map_name: 'label',
-      slice: 'slice',
+      slice: true,
     },
     {
       map_name: 'qiankun',
@@ -46,11 +47,12 @@ export default () => {
         {
           types: '[]string',
           map_name: 'label',
-          slice: 'slice',
+          slice: true,
         },
       ],
     },
   ];
+
   return (
     <PageHeaderWrapper>
       <Card>
