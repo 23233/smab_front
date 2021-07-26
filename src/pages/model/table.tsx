@@ -1,18 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
+import {
+  useDebounceEffect,
+  useMount,
+  useRequest,
+  useUnmount,
+  useUpdateEffect,
+} from 'ahooks';
 import Fetch, { C } from '@/utils/fetch';
-import RestApiGen, { getResultFormat } from '@/utils/restApiGen';
-import { uniqBy } from 'lodash';
+import RestApiGen from '@/utils/restApiGen';
+import moment from 'moment';
 import {
   Button,
   message,
   Popconfirm,
+  Select,
   Space,
   Table,
   TableColumnsType,
-  Tag,
+  Input,
+  Image,
 } from 'antd';
-import CommForm, { field } from '@/components/form/commForm';
 import {
   CompressOutlined,
   DeleteOutlined,
@@ -24,8 +31,10 @@ import { openDrawerFields } from '@/components/drawShowField';
 import useRealLocation from '@/components/useRealLocation';
 import useUrlState from '@ahooksjs/use-url-state';
 import { openDrawerEditFields } from '@/components/drawEditField';
-import { objectToData } from '@/utils/tools';
 import useModelPer from '@/pages/model/useModelPer';
+import { customTagParse } from '@/utils/tools';
+
+const { Option } = Select;
 
 interface p {
   modelName: string;
@@ -48,11 +57,14 @@ interface fieldInfo {
   is_created: boolean;
   is_updated: boolean;
   is_deleted: boolean;
+  is_default_wrap: boolean;
+  is_time: boolean;
   is_geo: boolean;
   is_mab_inline: boolean;
   is_inline: boolean;
   children: Array<fieldInfo>;
   children_kind: string;
+  custom_tag: string;
 }
 
 interface modelInfo {
@@ -70,7 +82,10 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   const [total, setTotal] = useState<number>(10);
   const [docTotal, setDocTotal] = useState<number>();
   const [modelInfo, setModelInfo] = useState<modelInfo>();
-  const [show, setShow] = useState<boolean>(false); // 新增
+  const [search, setSearch] = useState<string>();
+  const [modelFormat, setModelFormat] = useState<any>({});
+  const [sortMode, setSortMode] = useState<'_o' | '_od'>('_o');
+  const [sortField, setSortField] = useState<string>();
   const cover = useRef<boolean>(false);
   const per = useModelPer(modelName);
 
@@ -85,9 +100,10 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
       setUriState({
         model: modelName,
         page: page,
+        page_size: pageSize,
       });
     },
-    [modelName, page],
+    [modelName, page, pageSize],
     {
       wait: 800,
     },
@@ -106,6 +122,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     setUriState({
       model: undefined,
       page: undefined,
+      page_size: undefined,
     });
   });
 
@@ -116,7 +133,8 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
       manual: true,
       onSuccess: (resp) => {
         if (resp.response.status === 200) {
-          setModelInfo(resp.data);
+          setModelInfo(resp.data?.info);
+          setModelFormat(resp.data?.empty);
         }
       },
     },
@@ -129,13 +147,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
       manual: true,
       onSuccess: (resp) => {
         if (resp.response.status === 200) {
-          if (cover.current) {
-            setData(resp?.data?.data);
-            cover.current = false;
-          } else {
-            const uniqueList = uniqBy(data.concat(resp.data?.data), '_id');
-            setData(uniqueList);
-          }
+          setData(resp?.data?.data);
           setPage(resp.data?.page);
           setPageSize(resp.data?.page_size);
           setTotal(resp?.data?.count);
@@ -153,7 +165,6 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
       onSuccess: (resp) => {
         if (resp.response.status === 200) {
           message.success('新增成功');
-          setShow(false);
           runRefresh();
         }
       },
@@ -193,7 +204,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     }
   }, [modelName]);
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (modelInfo) {
       if (page === 1) {
         runFetch();
@@ -204,53 +215,165 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     }
   }, [modelInfo]);
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (page) {
       runFetch();
     }
-  }, [page]);
+  }, [page, pageSize, sortField, sortMode]);
 
-  const runFetch = () => {
-    getData({
+  const runFetch = (search?: string) => {
+    if (loading) return;
+    const p = {
       page: page,
       page_size: pageSize,
-    });
+    } as any;
+    if (sortField) {
+      p[sortMode] = sortField;
+    }
+    if (search !== undefined) {
+      p['_s'] = '__' + search + '__';
+    }
+    getData(p);
   };
 
   let columns: TableColumnsType<any> | undefined = [];
 
-  const renderArray = (text: any, record: any) => {
-    return (
-      <div style={{ width: 200, wordBreak: 'break-all' }}>
-        {Array.isArray(text)
-          ? text?.map((vv: string, i: number) => {
-              return (
-                <div
-                  key={i}
-                  style={{
-                    border: '1px solid #eee',
-                    padding: '2px 5px',
-                    fontSize: 12,
-                    color: 'black',
-                    background: '#f1f1f1',
-                    borderRadius: 5,
-                    marginBottom: 5,
-                  }}
-                >
-                  {vv}
-                </div>
-              );
-            })
-          : text}
-      </div>
-    );
+  const sliceTagNameToElement = (
+    tagName: string,
+    value: string,
+    fields: fieldInfo,
+  ) => {
+    if (Array.isArray(value)) {
+      switch (tagName) {
+        case 'img':
+          return value?.map((vv, i) => {
+            return (
+              <Image key={i} src={vv} title={vv} style={{ maxHeight: 60 }} />
+            );
+          });
+        default:
+          return value?.map((vv: string, i: number) => {
+            return (
+              <div
+                key={i}
+                style={{
+                  border: '1px solid #eee',
+                  padding: '2px 5px',
+                  fontSize: 12,
+                  color: 'black',
+                  background: '#f1f1f1',
+                  borderRadius: 5,
+                  marginBottom: 5,
+                }}
+                title={vv}
+              >
+                {vv}
+              </div>
+            );
+          });
+      }
+    }
+
+    return value;
+  };
+
+  const tagNameToElement = (
+    tagName: string,
+    value: string,
+    fields: fieldInfo,
+  ) => {
+    switch (tagName) {
+      case 'img':
+        return (
+          <Image
+            src={value}
+            title={fields.comment || fields.map_name}
+            style={{ maxHeight: 60 }}
+          />
+        );
+    }
+    return value;
   };
 
   if (data.length && modelInfo?.field_list?.length) {
     modelInfo?.field_list.map((d) => {
-      if (d?.children?.length) {
-        if (!d.is_inline) {
-          columns?.push({
+      // 如果是默认模型上层 则遍历下层
+      if (d?.is_default_wrap) {
+        return d?.children?.map((b) => {
+          return columns?.push({
+            title: b.comment || b.name,
+            dataIndex: b.map_name,
+            render: (text) => {
+              return (
+                <div
+                  style={{ width: 150, wordBreak: 'break-all' }}
+                  title={text}
+                >
+                  {text}
+                </div>
+              );
+            },
+          });
+        });
+      }
+
+      // 如果是时间也跳
+      if (d.is_time) {
+        columns?.push({
+          title: d.comment || d.name,
+          dataIndex: d.map_name,
+          render: (text) => {
+            return (
+              <div style={{ width: 150, wordBreak: 'break-all' }}>{text}</div>
+            );
+          },
+        });
+      }
+      // 如果是数组
+      if (d.kind === 'slice') {
+        if (d?.children_kind === 'struct') {
+          return columns?.push({
+            title: d.comment || d.name,
+            render: (_, record) => {
+              return (
+                <div style={{ width: 100 }}>
+                  {record?.[d.map_name] ? (
+                    <div
+                      onClick={() =>
+                        showStruct(record[d.map_name], d.name + '字段信息')
+                      }
+                    >
+                      {d.children?.length} 个字段
+                    </div>
+                  ) : (
+                    <div className={'text-gray-400'}>暂无内容</div>
+                  )}
+                </div>
+              );
+            },
+          });
+        }
+        return columns?.push({
+          title: d.comment || d.name,
+          dataIndex: d.map_name,
+          render: (text) => {
+            return (
+              <div style={{ width: 200, wordBreak: 'break-all' }}>
+                {sliceTagNameToElement(
+                  customTagParse(d.custom_tag)?.t,
+                  text,
+                  d,
+                )}
+              </div>
+            );
+          },
+        });
+      }
+
+      // 如果是struct
+      if (d.kind === 'struct') {
+        if (d?.children?.length) {
+          return columns?.push({
             title: d.comment || d.name,
             render: (_, record) => {
               return (
@@ -260,38 +383,25 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
                       showStruct(record[d.map_name], d.name + '字段信息')
                     }
                   >
-                    {d.children.length} 个字段
+                    {d?.children?.length} 个字段
                   </div>
                 </div>
               );
             },
           });
-          return;
         }
-        d.children.map((b) => {
-          return columns?.push({
-            title: b.comment || b.name,
-            dataIndex: b.map_name,
-            render: renderArray,
-          });
-        });
-        return;
-      }
-
-      if (d.is_inline) {
-        return columns?.push({
-          title: d.comment || d.name,
-          dataIndex: d.map_name,
-          render: (text) => {
-            return <div style={{ width: 200 }}>{text}</div>;
-          },
-        });
       }
 
       return columns?.push({
         title: d.comment || d.name,
         dataIndex: d.map_name,
-        render: renderArray,
+        render: (text) => {
+          return (
+            <div style={{ width: 100 }}>
+              {tagNameToElement(customTagParse(d.custom_tag)?.t, text, d)}
+            </div>
+          );
+        },
       });
     });
   }
@@ -340,96 +450,154 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     deleteData(record._id);
   };
 
-  // 新增
-  const addBefore = (values: any) => {
-    const data = {} as any;
-    for (const [key, value] of Object.entries(values)) {
-      // 新增的时候value不存在则不提交
-      if (value) {
-        const field = modelInfo?.flat_fields.find((d) => d.map_name === key);
-        if (field) {
-          data[field.params_key] = value;
-        } else {
-          console.error(`${key}未找到字段信息`);
-        }
-      }
-    }
-
-    if (Object.keys(data).length) {
-      addData(data);
-    } else {
-      message.warning('未获取到可新增的字段信息');
-    }
-  };
-
   // 修改完成
   const editSuccess = (diff: any, mid: string, _data: any) => {
     console.log('修改完成', diff, mid);
-    let data = {} as any;
-    modelInfo?.field_list?.map((d) => {
-      if (d.is_pk) return;
-
-      if (d.is_inline && d.is_mab_inline) {
-        d.children.map((b) => {
-          if (diff.hasOwnProperty(b.map_name)) {
-            data[b.map_name] = diff[b.map_name];
-          }
-        });
-        return;
-      }
-      if (d.is_inline) {
-        const _c = {} as any;
-        let has = d.children.some((b) => diff.hasOwnProperty(b.map_name));
-        // 遍历
-        d.children.map((b) => {
-          if (diff.hasOwnProperty(b.map_name)) {
-            _c[b.map_name] = diff[b.map_name];
-          } else {
-            if (has) {
-              _c[b.map_name] = _data[b.map_name];
-            }
-          }
-        });
-        if (has) {
-          delete _c['_id'];
-          data = { ...data, ...objectToData(_c, d.map_name) };
-        }
-
-        return;
-      }
-      if (d.is_mab_inline) {
-        if (diff.hasOwnProperty(d.map_name)) {
-          data = {
-            ...data,
-            ...objectToData(diff?.[d.map_name] || {}, d.map_name),
-          };
-        }
-      } else {
-        if (diff.hasOwnProperty(d.map_name)) {
-          if (d?.children && d?.children?.length) {
-            data = {
-              ...data,
-              ...objectToData(diff?.[d.map_name] || {}, d.map_name),
-            };
-            return;
-          }
-          data[d.map_name] = diff[d.map_name];
-        }
-      }
-    });
-
-    console.log('修改参数', data);
-
-    updateData(mid, data);
+    if (diff && Object.keys(diff).length) {
+      updateData(mid, diff);
+    }
   };
 
   // 修改
   const editRecordBefore = (record: any) => {
-    openDrawerEditFields(record, `修改${record['_id']}`, editSuccess);
+    console.log('edit record', record);
+    const tmp = modelParseToJson(
+      modelInfo?.field_list as Array<fieldInfo>,
+      true,
+    );
+    const newRecord = inlineReset(
+      record,
+      modelInfo?.field_list as Array<fieldInfo>,
+    );
+    console.log('new record', newRecord);
+    const j = compassArray(tmp, newRecord);
+    console.log('com', j);
+    const id = newRecord['id'] || newRecord['_id'];
+    const refer = modelParseToJson(
+      modelInfo?.field_list as Array<fieldInfo>,
+      true,
+      true,
+    );
+    console.log('refer', refer);
+    openDrawerEditFields({
+      data: j,
+      title: `修改${id}`,
+      id: id,
+      reference: refer,
+      onSuccess: editSuccess,
+    });
+  };
+
+  const inlineReset = (record: any, fields: Array<fieldInfo>) => {
+    const obj = { ...record } as any;
+    fields.map((d) => {
+      if (d.is_inline && !d.is_default_wrap) {
+        const v = {} as any;
+        d.children.map((b) => {
+          v[b.map_name] = obj[b.map_name];
+          delete obj[b.map_name];
+        });
+        obj[d.map_name] = v;
+      }
+    });
+    return obj;
+  };
+
+  const compassArray = (tmp: any, record: any) => {
+    let obj = {} as any;
+    for (const [key, value] of Object.entries(tmp)) {
+      obj[key] = record?.[key] || value;
+    }
+    return obj;
+  };
+
+  const modelSortFields = (fields: Array<fieldInfo>) => {
+    let t = [] as Array<fieldInfo>;
+    for (const d of fields) {
+      if (d.is_inline && d.children?.length) {
+        t = [...t, ...modelSortFields(d.children)];
+      } else if ((d.kind !== 'slice' && d.kind !== 'struct') || d.is_time) {
+        t.push(d);
+      }
+    }
+    return t;
+  };
+
+  // 新增完成
+  const addSuccess = (diff: object) => {
+    console.log('新增完成', diff);
+    if (diff && Object.keys(diff).length) {
+      addData(diff);
+    }
+  };
+
+  // 模型转换为json
+  const modelParseToJson = (
+    fields: Array<fieldInfo>,
+    edit?: boolean,
+    real?: boolean,
+  ) => {
+    let obj = {} as any;
+
+    for (const d of fields) {
+      let value = '' as any;
+      if (d.is_pk) {
+        continue;
+      }
+      if (!edit) {
+        if (d.is_created || d.is_updated) {
+          continue;
+        }
+      }
+
+      if (d.is_default_wrap) {
+        obj = { ...obj, ...modelParseToJson(d.children, edit, real) };
+        continue;
+      } else if (d.is_time) {
+        value = '';
+      } else if (d.kind === 'slice') {
+        if (d.children) {
+          value = [modelParseToJson(d.children, edit, real)];
+        } else {
+          if (d.children_kind.startsWith('int')) {
+            value = real ? [d.children_kind] : [];
+          } else if (d.children_kind.startsWith('uint')) {
+            value = real ? [d.children_kind] : [];
+          } else if (d.children_kind.startsWith('float')) {
+            value = real ? [d.children_kind] : [];
+          } else {
+            value = real ? ['string'] : [];
+          }
+        }
+      } else if (d.kind === 'struct') {
+        value = modelParseToJson(d.children, edit, real);
+      } else {
+        if (
+          d.kind.startsWith('int') ||
+          d.kind.startsWith('uint') ||
+          d.kind.startsWith('float')
+        ) {
+          value = 0;
+        }
+      }
+      obj[d.map_name] = value;
+    }
+    return obj;
   };
 
   const runAddBefore = () => {
-    setShow(true);
+    console.log('新增', modelFormat);
+    // 删掉id
+    if (modelInfo?.field_list?.length) {
+      const tmp = modelParseToJson(modelInfo?.field_list);
+      openDrawerEditFields({
+        data: tmp,
+        title: `新增${modelInfo?.alias}`,
+        onSuccess: addSuccess,
+      });
+    } else {
+      message.error('获取模型格式失败');
+    }
   };
 
   // 刷新
@@ -447,80 +615,55 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     setPage(page);
   };
 
-  let addFormFields: Array<field> = [];
+  const pageSizeChange = (current: number, size: number) => {
+    setPageSize(size);
+  };
 
-  modelInfo?.field_list?.map((d) => {
-    if (d.map_name !== 'default_field') {
-      // 数组
-      if (d.kind === 'slice') {
-        // 数组内容是struct
-        if (d.children_kind === 'struct') {
-          addFormFields.push({
-            types: d.children_kind,
-            label: d.name,
-            map_name: d.map_name,
-            slice: true,
-            initKey: d.params_key,
-            children: d?.children?.map((b) => {
-              return {
-                types: b.types,
-                label: b.name,
-                map_name: b.map_name,
-                required: false,
-                initKey: b.params_key,
-              } as field;
-            }),
-          } as field);
-        } else {
-          // 若不是struct 就定义为基本类型算了
-          addFormFields.push({
-            types: d.children_kind,
-            label: d.name,
-            map_name: d.map_name,
-            slice: true,
-            initKey: d.params_key,
-          } as field);
-        }
-      } else if (d.kind === 'struct') {
-        // 还要判断是否是时间
-        addFormFields.push({
-          types: ['time.Time', 'time', 'time.Duration'].includes(d.types)
-            ? d.types
-            : d.children_kind,
-          label: d.name,
-          map_name: d.map_name,
-          initKey: d.params_key,
-          children: d?.children?.map((b) => {
-            return {
-              types: b.types,
-              label: b.name,
-              map_name: b.map_name,
-              required: false,
-              initKey: b.params_key,
-            } as field;
-          }),
-        } as field);
-      } else {
-        addFormFields.push({
-          types: d.types,
-          label: d.name,
-          map_name: d.map_name,
-          required: false,
-          initKey: d.params_key,
-        } as field);
-      }
+  const runSearch = (value: string) => {
+    console.log('search', value);
+    if (value) {
+      runFetch(value);
+      return;
     }
-  });
-
-  console.log('addForm', addFormFields);
+    runFetch();
+  };
 
   return (
     <React.Fragment>
       <div className={'my-2'}>
         <Space>
+          {`模型共:${docTotal || 0}条`}
+          <div>
+            <Select value={sortMode} onChange={setSortMode}>
+              <Option value={'_o'}>升序</Option>
+              <Option value={'_od'}>降序</Option>
+            </Select>
+            <Select
+              value={sortField}
+              onChange={setSortField}
+              style={{ width: 150 }}
+            >
+              {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
+                return (
+                  <Option value={d.map_name} key={d.map_name}>
+                    {d.comment || d.map_name}
+                  </Option>
+                );
+              })}
+            </Select>
+          </div>
           {per.post && <Button onClick={runAddBefore}>新增</Button>}
-
           <Button onClick={runRefresh}>刷新</Button>
+
+          <div>
+            <Input.Search
+              placeholder={'请输入关键词搜索'}
+              allowClear
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onSearch={runSearch}
+            />
+          </div>
         </Space>
       </div>
       <Table
@@ -538,19 +681,12 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           total: total,
           current: page,
           pageSize: pageSize,
+          showSizeChanger: true,
+          onShowSizeChange: pageSizeChange,
           onChange: pageChange,
         }}
-        footer={() => `模型总量:${docTotal}条`}
         scroll={{ x: true }}
       />
-
-      {show && (
-        <CommForm
-          fieldsList={addFormFields}
-          onCancel={() => setShow(false)}
-          onCreate={addBefore}
-        />
-      )}
     </React.Fragment>
   );
 };

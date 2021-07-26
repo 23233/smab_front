@@ -56,7 +56,7 @@ const req = {
   },
   // 获取模型信息
   getModelInfo: (name: string) => {
-    return Req.get(`${v}/get_model/${name}`);
+    return Req.get(`${C}/model_info/${name}`);
   },
   // 任务变更完成/失败
   changeTaskSuccess: (id: string, success: boolean) => {

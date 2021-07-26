@@ -301,7 +301,9 @@ const CommForm: React.FC<formParams> = ({
 
   // todo 继续这里
   // 多个
-  const SliceStruct = (k: field) => {};
+  const SliceStruct = (k: field) => {
+    return <div></div>;
+  };
 
   const MomentToFormat = (values: any) => {
     Object.keys(values).map((k, i) => {
