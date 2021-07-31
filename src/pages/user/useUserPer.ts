@@ -29,7 +29,7 @@ const useUserPer = (): useModelRef => {
         return;
       }
       userPer.map((d: any) => {
-        if (d.key === 'user_i') {
+        if (d.key === 'mab_user_i') {
           d?.children?.map((b: any) => {
             switch (b.title) {
               case 'get':

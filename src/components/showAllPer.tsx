@@ -8,6 +8,7 @@ interface p {
   onChange?: (checkKeys: React.Key[]) => void;
 }
 
+// 选择用户权限
 const AllPerSelect: React.FC<p> = ({ onChange, ...props }) => {
   const { userPer } = useModel('useAuthModel');
   const [treeData, setTreeData] = useState<Array<any>>([]);

@@ -63,13 +63,15 @@ const v = () => {
         return (
           <div style={{ width: 100 }}>
             {text}
-            <Popover
-              content={record?.create_id}
-              title={'账户创建者Id'}
-              trigger={['click']}
-            >
-              <div className={'text-gray-400'}>创建者</div>
-            </Popover>
+            {!!record?.create_id && (
+              <Popover
+                content={record?.create_id}
+                title={'账户创建者Id'}
+                trigger={['click']}
+              >
+                <div className={'text-gray-400'}>创建者ID</div>
+              </Popover>
+            )}
           </div>
         );
       },
