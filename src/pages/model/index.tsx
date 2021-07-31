@@ -5,6 +5,7 @@ import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
 import ModelTableView from '@/pages/model/table';
 import { tabItem } from '@/define/exp';
 import { sortBy } from 'lodash';
+import { Result, Button } from 'antd';
 
 interface p {}
 
@@ -56,25 +57,40 @@ const V: React.FC<p> = ({ ...props }) => {
 
   return (
     <React.Fragment>
-      {/*平铺比较安全*/}
-      <div className={'flex flex-wrap mb-2'}>
-        {tabs.map((d) => {
-          return (
-            <div
-              className={`p-1 px-2 text-md ${
-                tab?.id === d.id ? 'border-b-2 border-blue-400' : ''
-              } cursor-pointer mr-2`}
-              title={d.label}
-              key={d.id}
-              onClick={() => tabChange(d)}
-            >
-              {d.label}
-            </div>
-          );
-        })}
-      </div>
+      {tabs?.length ? (
+        <React.Fragment>
+          {/*平铺比较安全*/}
+          <div className={'flex flex-wrap mb-2'}>
+            {tabs.map((d) => {
+              return (
+                <div
+                  className={`p-1 px-2 text-md ${
+                    tab?.id === d.id ? 'border-b-2 border-blue-400' : ''
+                  } cursor-pointer mr-2`}
+                  title={d.label}
+                  key={d.id}
+                  onClick={() => tabChange(d)}
+                >
+                  {d.label}
+                </div>
+              );
+            })}
+          </div>
 
-      {!!tab && <ModelTableView modelName={tab.id as string} />}
+          {!!tab && <ModelTableView modelName={tab.id as string} />}
+        </React.Fragment>
+      ) : (
+        <Result
+          status="403"
+          title="未获取到任何模型的权限"
+          subTitle="若有异常请刷新或联系管理员"
+          extra={
+            <Button type="primary" onClick={() => window.location.reload()}>
+              立即刷新
+            </Button>
+          }
+        />
+      )}
     </React.Fragment>
   );
 };
