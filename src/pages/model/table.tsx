@@ -33,14 +33,23 @@ import useUrlState from '@ahooksjs/use-url-state';
 import { openDrawerEditFields } from '@/components/drawEditField';
 import useModelPer from '@/pages/model/useModelPer';
 import { customTagParse } from '@/utils/tools';
+import SimpleTable from '@/components/simpleTable';
 
 const { Option } = Select;
 
 interface p {
   modelName: string;
+  modelInfo: modelInfo;
+  modelFormat: object;
+  fetchUri: string;
+  permission?: {
+    delete?: boolean;
+    put?: boolean;
+    post?: boolean;
+  };
 }
 
-interface fieldInfo {
+export interface fieldInfo {
   name: string;
   map_name: string;
   full_name: string;
@@ -72,22 +81,25 @@ interface modelInfo {
   full_path: string;
   alias: string;
   field_list: Array<fieldInfo>;
-  flat_fields: Array<fieldInfo>;
 }
 
-const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
+const ModelTableView: React.FC<p> = ({
+  modelName,
+  modelInfo = {},
+  modelFormat = {},
+  fetchUri,
+  permission,
+  ...props
+}) => {
   const [data, setData] = useState<Array<any>>([]);
   const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(10);
   const [docTotal, setDocTotal] = useState<number>();
-  const [modelInfo, setModelInfo] = useState<modelInfo>();
   const [search, setSearch] = useState<string>();
-  const [modelFormat, setModelFormat] = useState<any>({});
   const [sortMode, setSortMode] = useState<'_o' | '_od'>('_o');
   const [sortField, setSortField] = useState<string>();
   const cover = useRef<boolean>(false);
-  const per = useModelPer(modelName);
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -98,12 +110,11 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
   useDebounceEffect(
     () => {
       setUriState({
-        model: modelName,
         page: page,
         page_size: pageSize,
       });
     },
-    [modelName, page, pageSize],
+    [page, pageSize],
     {
       wait: 800,
     },
@@ -120,46 +131,28 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
   useUnmount(() => {
     setUriState({
-      model: undefined,
       page: undefined,
       page_size: undefined,
     });
   });
 
-  // 获取模型信息
-  const { run: modelInfoReq, loading: modelInfoLoading } = useRequest(
-    Fetch.getModelInfo,
-    {
-      manual: true,
-      onSuccess: (resp) => {
-        if (resp.response.status === 200) {
-          setModelInfo(resp.data?.info);
-          setModelFormat(resp.data?.empty);
-        }
-      },
-    },
-  );
-
   // 获取数据内容
-  const { run: getData, loading } = useRequest(
-    new RestApiGen(C + '/' + modelName).get,
-    {
-      manual: true,
-      onSuccess: (resp) => {
-        if (resp.response.status === 200) {
-          setData(resp?.data?.data);
-          setPage(resp.data?.page);
-          setPageSize(resp.data?.page_size);
-          setTotal(resp?.data?.count);
-          setDocTotal(resp?.data?.doc_count);
-        }
-      },
+  const { run: getData, loading } = useRequest(new RestApiGen(fetchUri).get, {
+    manual: true,
+    onSuccess: (resp) => {
+      if (resp.response.status === 200) {
+        setData(resp?.data?.data);
+        setPage(resp.data?.page);
+        setPageSize(resp.data?.page_size);
+        setTotal(resp?.data?.count);
+        setDocTotal(resp?.data?.doc_count);
+      }
     },
-  );
+  });
 
   // 新增数据
   const { run: addData, loading: addLoading } = useRequest(
-    new RestApiGen(C + '/' + modelName).post,
+    new RestApiGen(fetchUri).post,
     {
       manual: true,
       onSuccess: (resp) => {
@@ -173,7 +166,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
   // 修改数据
   const { run: updateData, loading: updateLoading } = useRequest(
-    new RestApiGen(C + '/' + modelName).put,
+    new RestApiGen(fetchUri).put,
     {
       manual: true,
       onSuccess: (resp) => {
@@ -187,7 +180,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
 
   // 删除数据
   const { run: deleteData, loading: deleteLoading } = useRequest(
-    new RestApiGen(C + '/' + modelName).delete,
+    new RestApiGen(fetchUri).delete,
     {
       manual: true,
       onSuccess: (resp) => {
@@ -197,12 +190,6 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
       },
     },
   );
-
-  useEffect(() => {
-    if (modelName) {
-      modelInfoReq(modelName);
-    }
-  }, [modelName]);
 
   useUpdateEffect(() => {
     if (modelInfo) {
@@ -236,214 +223,39 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
     getData(p);
   };
 
-  let columns: TableColumnsType<any> | undefined = [];
-
-  const sliceTagNameToElement = (
-    tagName: string,
-    value: string,
-    fields: fieldInfo,
-  ) => {
-    if (Array.isArray(value)) {
-      switch (tagName) {
-        case 'img':
-          return value?.map((vv, i) => {
-            return (
-              <Image key={i} src={vv} title={vv} style={{ maxHeight: 60 }} />
-            );
-          });
-        default:
-          return value?.map((vv: string, i: number) => {
-            return (
-              <div
-                key={i}
-                style={{
-                  border: '1px solid #eee',
-                  padding: '2px 5px',
-                  fontSize: 12,
-                  color: 'black',
-                  background: '#f1f1f1',
-                  borderRadius: 5,
-                  marginBottom: 5,
-                }}
-                title={vv}
-              >
-                {vv}
-              </div>
-            );
-          });
-      }
-    }
-
-    return value;
-  };
-
-  const tagNameToElement = (
-    tagName: string,
-    value: string,
-    fields: fieldInfo,
-  ) => {
-    switch (tagName) {
-      case 'img':
+  const extraColumns = [
+    {
+      title: '操作',
+      fixed: 'right',
+      render: (text: string, record: any) => {
         return (
-          <Image
-            src={value}
-            title={fields.comment || fields.map_name}
-            style={{ maxHeight: 60 }}
-          />
-        );
-    }
-    return value;
-  };
-
-  if (data.length && modelInfo?.field_list?.length) {
-    modelInfo?.field_list.map((d) => {
-      // 如果是默认模型上层 则遍历下层
-      if (d?.is_default_wrap) {
-        return d?.children?.map((b) => {
-          return columns?.push({
-            title: b.comment || b.name,
-            dataIndex: b.map_name,
-            render: (text) => {
-              return (
-                <div
-                  style={{ width: 150, wordBreak: 'break-all' }}
-                  title={text}
+          <div className="px-2">
+            <Space size="middle">
+              {permission?.delete && (
+                <Popconfirm
+                  title={'确认删除这条数据吗?'}
+                  onConfirm={() => runDelete(record)}
                 >
-                  {text}
-                </div>
-              );
-            },
-          });
-        });
-      }
+                  <DeleteOutlined title={'删除'} />
+                </Popconfirm>
+              )}
 
-      // 如果是时间也跳
-      if (d.is_time) {
-        columns?.push({
-          title: d.comment || d.name,
-          dataIndex: d.map_name,
-          render: (text) => {
-            return (
-              <div style={{ width: 150, wordBreak: 'break-all' }}>{text}</div>
-            );
-          },
-        });
-      }
-      // 如果是数组
-      if (d.kind === 'slice') {
-        if (d?.children_kind === 'struct') {
-          return columns?.push({
-            title: d.comment || d.name,
-            render: (_, record) => {
-              return (
-                <div style={{ width: 100 }}>
-                  {record?.[d.map_name] ? (
-                    <div
-                      onClick={() =>
-                        showStruct(record[d.map_name], d.name + '字段信息')
-                      }
-                    >
-                      {d.children?.length} 个字段
-                    </div>
-                  ) : (
-                    <div className={'text-gray-400'}>暂无内容</div>
-                  )}
-                </div>
-              );
-            },
-          });
-        }
-        return columns?.push({
-          title: d.comment || d.name,
-          dataIndex: d.map_name,
-          render: (text) => {
-            return (
-              <div style={{ width: 200, wordBreak: 'break-all' }}>
-                {sliceTagNameToElement(
-                  customTagParse(d.custom_tag)?.t,
-                  text,
-                  d,
-                )}
-              </div>
-            );
-          },
-        });
-      }
-
-      // 如果是struct
-      if (d.kind === 'struct') {
-        if (d?.children?.length) {
-          return columns?.push({
-            title: d.comment || d.name,
-            render: (_, record) => {
-              return (
-                <div style={{ width: 100 }}>
-                  <div
-                    onClick={() =>
-                      showStruct(record[d.map_name], d.name + '字段信息')
-                    }
-                  >
-                    {d?.children?.length} 个字段
-                  </div>
-                </div>
-              );
-            },
-          });
-        }
-      }
-
-      return columns?.push({
-        title: d.comment || d.name,
-        dataIndex: d.map_name,
-        render: (text) => {
-          return (
-            <div style={{ width: 100 }}>
-              {tagNameToElement(customTagParse(d.custom_tag)?.t, text, d)}
-            </div>
-          );
-        },
-      });
-    });
-  }
-
-  if (!columns.some((b: any) => b?.dataIndex == '_id')) {
-    columns.unshift({
-      title: 'Id',
-      dataIndex: '_id',
-    });
-  }
-
-  columns.push({
-    title: '操作',
-    fixed: 'right',
-    render: (text: string, record: any) => {
-      return (
-        <div className="px-2">
-          <Space size="middle">
-            {per.delete && (
-              <Popconfirm
-                title={'确认删除这条数据吗?'}
-                onConfirm={() => runDelete(record)}
-              >
-                <DeleteOutlined title={'删除'} />
-              </Popconfirm>
-            )}
-
-            <CompressOutlined
-              title={'展开全部'}
-              onClick={() => showStruct(record, '全部字段信息')}
-            />
-            {per.put && (
-              <EditOutlined
-                title={'编辑'}
-                onClick={() => editRecordBefore(record)}
+              <CompressOutlined
+                title={'展开全部'}
+                onClick={() => showStruct(record, '全部字段信息')}
               />
-            )}
-          </Space>
-        </div>
-      );
+              {permission?.put && (
+                <EditOutlined
+                  title={'编辑'}
+                  onClick={() => editRecordBefore(record)}
+                />
+              )}
+            </Space>
+          </div>
+        );
+      },
     },
-  });
+  ];
 
   // 删除
   const runDelete = (record: any) => {
@@ -652,7 +464,7 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
               })}
             </Select>
           </div>
-          {per.post && <Button onClick={runAddBefore}>新增</Button>}
+          {permission?.post && <Button onClick={runAddBefore}>新增</Button>}
           <Button onClick={runRefresh}>刷新</Button>
 
           <div>
@@ -666,17 +478,11 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           </div>
         </Space>
       </div>
-      <Table
-        dataSource={data}
-        columns={columns}
-        rowKey={'_id'}
-        loading={
-          loading ||
-          modelInfoLoading ||
-          addLoading ||
-          deleteLoading ||
-          updateLoading
-        }
+      <SimpleTable
+        data={data}
+        field_list={modelInfo?.field_list || []}
+        extraColumns={extraColumns}
+        loading={loading || addLoading || deleteLoading || updateLoading}
         pagination={{
           total: total,
           current: page,
@@ -685,7 +491,6 @@ const ModelTableView: React.FC<p> = ({ modelName, ...props }) => {
           onShowSizeChange: pageSizeChange,
           onChange: pageChange,
         }}
-        scroll={{ x: true }}
       />
     </React.Fragment>
   );

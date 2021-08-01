@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useModel } from 'umi';
 import useRealLocation from '@/components/useRealLocation';
 import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
-import ModelTableView from '@/pages/model/table';
 import { tabItem } from '@/define/exp';
 import { sortBy } from 'lodash';
 import { Result, Button } from 'antd';
+import ModelTable from '@/pages/model/modelTable';
 
 interface p {}
 
@@ -77,7 +77,7 @@ const V: React.FC<p> = ({ ...props }) => {
             })}
           </div>
 
-          {!!tab && <ModelTableView modelName={tab.id as string} />}
+          {!!tab && <ModelTable modelName={tab.id as string} />}
         </React.Fragment>
       ) : (
         <Result
