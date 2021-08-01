@@ -107,7 +107,7 @@ const v = () => {
     },
     {
       title: '子应用',
-      render: (record: any) => {
+      render: (_: any, record: any) => {
         return (
           <div style={{ width: 200 }}>
             {!!record?.qian_kun?.length &&
@@ -139,6 +139,43 @@ const v = () => {
                       trigger={['click']}
                     >
                       <Tag>{b?.label}</Tag>
+                    </Popover>
+                  </Space>
+                );
+              })}
+          </div>
+        );
+      },
+    },
+    {
+      title: '数据过滤',
+      render: (_: any, record: any) => {
+        return (
+          <div style={{ width: 200 }}>
+            {!!record?.filter_data?.length &&
+              record?.filter_data?.map((b: any, i: number) => {
+                return (
+                  <Space key={i}>
+                    <Popover
+                      content={
+                        <div>
+                          <div>
+                            字段:
+                            {b?.key?.map((bb: any, ii: number) => {
+                              return <Tag key={ii}>{bb}</Tag>;
+                            })}
+                          </div>
+                          <div>
+                            <b className={''}>
+                              值: <span>{b?.value}</span>
+                            </b>
+                          </div>
+                        </div>
+                      }
+                      title={'过滤信息'}
+                      trigger={['click']}
+                    >
+                      <Tag>{b?.model_name}</Tag>
                     </Popover>
                   </Space>
                 );
