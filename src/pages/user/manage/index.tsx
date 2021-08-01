@@ -3,16 +3,15 @@ import { Table, Space, Button, Popconfirm, message, Popover, Tag } from 'antd';
 import { useModel } from 'umi';
 import { useRequest } from 'ahooks';
 import Fetch from '@/utils/fetch';
-import AddUser from '@/components/addUser';
+import AddEditUser from '@/components/addEditUser';
 import ChangePasswordModal from '@/components/changePassword';
-import EditUserBaseModal from '@/components/editUserBase';
 import EditPermissionsModal from '@/components/editPermissions';
 import {
   DeleteOutlined,
   DiffOutlined,
   EditOutlined,
   LockOutlined,
-  UnlockOutlined,
+  FilterOutlined,
 } from '@ant-design/icons';
 import useUserPer from '@/pages/user/useUserPer';
 
@@ -158,7 +157,7 @@ const v = () => {
         <Space size="middle">
           {per.put && (
             <React.Fragment>
-              <UnlockOutlined
+              <LockOutlined
                 title={'变更密码'}
                 onClick={() => passwordShow(record)}
               />
@@ -185,25 +184,26 @@ const v = () => {
     },
   });
 
-  const addUserSuccess = () => {
-    setShow(false);
-    run();
-  };
-
   const passwordShow = (record: any) => {
     nowSelect.current = record;
     setPShow(true);
   };
 
+  // 新增用户
+  const runAddUser = () => {
+    nowSelect.current = undefined;
+    setShow(true);
+  };
+  // 新增或修改成功
+  const addUserSuccess = () => {
+    setShow(false);
+    run();
+  };
+
   // 变更信息
   const changeInfoShow = (record: any) => {
     nowSelect.current = record;
-    setEditShow(true);
-  };
-
-  const changeInfoSuccess = () => {
-    setEditShow(false);
-    run();
+    setShow(true);
   };
 
   const changePerShow = (record: any) => {
@@ -224,7 +224,7 @@ const v = () => {
     <div>
       <div className={'mb-2'}>
         <Space>
-          {per.post && <Button onClick={() => setShow(true)}>新增用户</Button>}
+          {per.post && <Button onClick={runAddUser}>新增用户</Button>}
 
           <Button onClick={() => run()}>刷新</Button>
         </Space>
@@ -237,26 +237,18 @@ const v = () => {
         scroll={{ x: true }}
       />
 
-      <AddUser show={show} setShow={setShow} onSuccess={addUserSuccess} />
+      <AddEditUser
+        show={show}
+        setShow={setShow}
+        recordId={nowSelect.current?.id}
+        initValues={nowSelect.current}
+        onSuccess={addUserSuccess}
+      />
 
       <ChangePasswordModal
         userId={nowSelect.current?.id}
         setShow={setPShow}
         show={pShow}
-      />
-
-      {/*修改信息*/}
-      <EditUserBaseModal
-        show={editShow}
-        setShow={setEditShow}
-        userId={nowSelect.current?.id}
-        initValues={{
-          desc: nowSelect.current?.desc,
-          phone: nowSelect.current?.phone,
-          super_user: nowSelect.current?.super_user,
-          qian_kun: nowSelect.current?.qian_kun,
-        }}
-        onSuccess={changeInfoSuccess}
       />
 
       {/*修改权限*/}

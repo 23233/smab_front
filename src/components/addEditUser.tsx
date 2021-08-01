@@ -1,28 +1,29 @@
 import React, { useMemo, useState } from 'react';
 import CommForm, { field, formItemLayout } from '@/components/form/commForm';
 import { useModel } from '@@/plugin-model/useModel';
-import { Button, Divider, Form, Input, message, Select } from 'antd';
+import { Button, Divider, Form, Input, Space, Select, message } from 'antd';
 import AllPerSelect from '@/components/showAllPer';
 import { useRequest } from 'ahooks';
 import Fetch from '@/utils/fetch';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import useGetModelInfo from '@/pages/model/useGetModelInfo';
 
+const { Option } = Select;
+
 interface p {
   show: boolean;
   setShow: Function;
   onSuccess?: Function;
   initValues?: any;
-  recordId: string;
+  recordId?: string;
 }
-const { Option } = Select;
 
-const EditUserBaseModal: React.FC<p> = ({
+const AddEditUser: React.FC<p> = ({
   show,
   setShow,
   onSuccess,
-  recordId,
   initValues,
+  recordId,
   ...props
 }) => {
   const { userPer, userInfo } = useModel('useAuthModel');
@@ -66,7 +67,6 @@ const EditUserBaseModal: React.FC<p> = ({
       },
     },
   ];
-
   if (userInfo?.super) {
     fieldsList.push({
       types: 'bool',
@@ -75,28 +75,82 @@ const EditUserBaseModal: React.FC<p> = ({
       required: false,
     });
   }
+  // 新增则需要输入用户名和密码
+  if (!recordId) {
+    fieldsList.unshift(
+      {
+        types: 'string',
+        map_name: 'user_name',
+        label: '用户名',
+        rules: {
+          max: 30,
+          message: '请勿超过30个字符',
+        },
+        required: true,
+        placeholder: '推荐英文',
+      },
+      {
+        types: 'string',
+        map_name: 'password',
+        label: '密码',
+        rules: {
+          min: 6,
+          max: 20,
+          message: '请输入6-20个字符之间',
+        },
+        required: true,
+        placeholder: '请输入密码',
+      },
+    );
+  }
 
-  const { run, loading } = useRequest(Fetch.editUserBase, {
+  const { run, loading } = useRequest(Fetch.addUser, {
     manual: true,
     onSuccess: (resp) => {
       if (resp.response.status === 200) {
-        message.success('修改成功');
         onSuccess && onSuccess();
       }
     },
   });
 
+  const { run: editReq, loading: editLoading } = useRequest(
+    Fetch.editUserBase,
+    {
+      manual: true,
+      onSuccess: (resp) => {
+        if (resp.response.status === 200) {
+          message.success('修改成功');
+          onSuccess && onSuccess();
+        }
+      },
+    },
+  );
+
   const formSuccess = (values: any) => {
-    const data = {
-      id: String(recordId),
+    let baseData = {
       desc: values.desc,
       phone: values.phone,
       super_user: values.super_user,
       qian_kun: values?.qiankun,
       filter_data: values?.filter_data,
-    };
-    console.log('修改user', values, data);
-    run(data);
+    } as any;
+
+    if (!recordId) {
+      baseData.permissions = values.permissions.map((d: string) => {
+        const sp = d.split('-');
+        return {
+          scope: sp[0],
+          action: sp[1],
+        };
+      });
+      baseData.name = values.user_name;
+      baseData.password = values.password;
+      run(baseData);
+    } else {
+      baseData.id = String(recordId);
+      editReq(baseData);
+    }
+    console.log('用户信息', values, baseData);
   };
 
   return (
@@ -106,9 +160,25 @@ const EditUserBaseModal: React.FC<p> = ({
           fieldsList={fieldsList}
           onCreate={formSuccess}
           initValues={initValues}
-          loading={loading}
+          loading={loading || editLoading}
           onCancel={() => setShow(false)}
         >
+          {!recordId && (
+            <Form.Item
+              {...formItemLayout}
+              name={'permissions'}
+              label={'权限'}
+              rules={[
+                {
+                  required: true,
+                  message: '请选择权限',
+                },
+              ]}
+            >
+              <AllPerSelect />
+            </Form.Item>
+          )}
+
           <Form.List name="qiankun" initialValue={initValues?.qian_kun}>
             {(fields, { add, remove }) => (
               <>
@@ -174,22 +244,19 @@ const EditUserBaseModal: React.FC<p> = ({
                     </Form.Item>
                   </div>
                 ))}
-                {fields.length < 1 && (
-                  <Form.Item label={'子应用'} {...formItemLayout}>
-                    <Button
-                      type="dashed"
-                      onClick={() => add()}
-                      block
-                      icon={<PlusOutlined />}
-                    >
-                      新增子应用
-                    </Button>
-                  </Form.Item>
-                )}
+                <Form.Item label={'子应用'} {...formItemLayout}>
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    block
+                    icon={<PlusOutlined />}
+                  >
+                    新增子应用
+                  </Button>
+                </Form.Item>
               </>
             )}
           </Form.List>
-
           <Form.List name="filter_data" initialValue={initValues?.filter_data}>
             {(fields, { add, remove }) => (
               <>
@@ -281,4 +348,4 @@ const EditUserBaseModal: React.FC<p> = ({
     </React.Fragment>
   );
 };
-export default EditUserBaseModal;
+export default AddEditUser;
