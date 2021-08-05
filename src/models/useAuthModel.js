@@ -4,8 +4,9 @@ import CONFIG from '../utils/config';
 import Fetch from '../utils/fetch';
 
 export default function useAuthModel() {
-  let [userInfo, setUserInfo] = useSessionStorageState(CONFIG.save.info);
-  let [userToken, setUserToken] = useSessionStorageState(CONFIG.save.token);
+  const [userInfo, setUserInfo] = useSessionStorageState(CONFIG.save.info);
+  const [userToken, setUserToken] = useSessionStorageState(CONFIG.save.token);
+  const [welCome, setWelCome] = useSessionStorageState(CONFIG.save.welcome);
   const [userPer, setUserPer] = useState([]);
 
   const { run: getUserInfoReq } = useRequest(Fetch.getUserInfo, {
@@ -13,6 +14,7 @@ export default function useAuthModel() {
     onSuccess: (resp) => {
       if (resp.response.status === 200) {
         setUserPer(resp.data?.policy?.data || []);
+        setWelCome(resp.data?.welcome || {});
       }
     },
   });
@@ -45,5 +47,6 @@ export default function useAuthModel() {
     signin,
     signout,
     userPer,
+    welCome,
   };
 }

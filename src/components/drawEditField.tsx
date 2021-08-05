@@ -84,6 +84,7 @@ const DrawerEditFields: React.FC<p> = ({
         }
       }
       _temp.current = { ..._data };
+      console.log('_data', _data);
       setSrc(_data);
     }
   }, [data]);

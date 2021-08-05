@@ -104,7 +104,7 @@ const SimpleTable: React.FC<simpleTable> = ({
     if (data.length && field_list?.length) {
       field_list.map((d) => {
         // 如果是默认模型上层 则遍历下层
-        if (d?.is_default_wrap) {
+        if (d?.is_default_wrap || d?.is_inline) {
           return d?.children?.map((b) => {
             return r?.push({
               title: b.comment || b.name,

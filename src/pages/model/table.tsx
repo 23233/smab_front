@@ -19,6 +19,7 @@ import {
   TableColumnsType,
   Input,
   Image,
+  Popover,
 } from 'antd';
 import {
   CompressOutlined,
@@ -95,11 +96,13 @@ const ModelTableView: React.FC<p> = ({
   const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(10);
+  const [filter, setFilter] = useState<Array<any>>([]);
   const [docTotal, setDocTotal] = useState<number>();
   const [search, setSearch] = useState<string>();
   const [sortMode, setSortMode] = useState<'_o' | '_od'>('_o');
   const [sortField, setSortField] = useState<string>();
   const cover = useRef<boolean>(false);
+  const modelInstance = useRef<any>();
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -146,6 +149,7 @@ const ModelTableView: React.FC<p> = ({
         setPageSize(resp.data?.page_size);
         setTotal(resp?.data?.count);
         setDocTotal(resp?.data?.doc_count);
+        setFilter(resp?.data?.filter);
       }
     },
   });
@@ -158,6 +162,7 @@ const ModelTableView: React.FC<p> = ({
       onSuccess: (resp) => {
         if (resp.response.status === 200) {
           message.success('新增成功');
+          modelInstance?.current?.destroy();
           runRefresh();
         }
       },
@@ -172,6 +177,7 @@ const ModelTableView: React.FC<p> = ({
       onSuccess: (resp) => {
         if (resp.response.status === 200) {
           message.success('修改成功');
+          modelInstance.current?.destroy();
           runRefresh();
         }
       },
@@ -291,7 +297,7 @@ const ModelTableView: React.FC<p> = ({
       true,
     );
     console.log('refer', refer);
-    openDrawerEditFields({
+    modelInstance.current = openDrawerEditFields({
       data: j,
       title: `修改${id}`,
       id: id,
@@ -301,15 +307,17 @@ const ModelTableView: React.FC<p> = ({
   };
 
   const inlineReset = (record: any, fields: Array<fieldInfo>) => {
-    const obj = { ...record } as any;
+    let obj = { ...record } as any;
     fields.map((d) => {
-      if (d.is_inline && !d.is_default_wrap) {
-        const v = {} as any;
-        d.children.map((b) => {
-          v[b.map_name] = obj[b.map_name];
-          delete obj[b.map_name];
-        });
-        obj[d.map_name] = v;
+      if (!d.is_default_wrap) {
+        if (d.is_inline) {
+          const v = {} as any;
+          d.children.map((b) => {
+            v[b.map_name] = obj[b.map_name];
+            delete obj[b.map_name];
+          });
+          obj = { ...obj, ...v };
+        }
       }
     });
     return obj;
@@ -361,8 +369,7 @@ const ModelTableView: React.FC<p> = ({
           continue;
         }
       }
-
-      if (d.is_default_wrap) {
+      if (d.is_default_wrap || d.is_inline) {
         obj = { ...obj, ...modelParseToJson(d.children, edit, real) };
         continue;
       } else if (d.is_time) {
@@ -402,7 +409,8 @@ const ModelTableView: React.FC<p> = ({
     // 删掉id
     if (modelInfo?.field_list?.length) {
       const tmp = modelParseToJson(modelInfo?.field_list);
-      openDrawerEditFields({
+      console.log('新增的fields', tmp);
+      modelInstance.current = openDrawerEditFields({
         data: tmp,
         title: `新增${modelInfo?.alias}`,
         onSuccess: addSuccess,
@@ -476,6 +484,25 @@ const ModelTableView: React.FC<p> = ({
               onSearch={runSearch}
             />
           </div>
+          {!!filter && (
+            <Popover
+              trigger={['click']}
+              title={'筛选'}
+              content={
+                <div>
+                  {filter?.map((d, i) => {
+                    return (
+                      <p key={i}>
+                        {d?.Key}:{d?.Value}
+                      </p>
+                    );
+                  })}
+                </div>
+              }
+            >
+              <span className={'text-gray-400'}>筛选</span>
+            </Popover>
+          )}
         </Space>
       </div>
       <SimpleTable

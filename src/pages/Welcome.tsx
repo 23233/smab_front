@@ -4,60 +4,16 @@ import { Card, Typography, Alert, Form, Input, Button } from 'antd';
 import CommForm, { field, formItemLayout } from '@/components/form/commForm';
 import AllPerSelect from '@/components/showAllPer';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { useModel } from '@@/plugin-model/useModel';
 
 export default () => {
-  const [show, setShow] = useState(true);
-  const formSuccess = (values: any) => {
-    console.log('vakyes', values);
-  };
-
-  const fields: Array<field> = [
-    {
-      types: 'string',
-      map_name: 'user_name',
-      label: '用户名',
-      rules: {
-        max: 30,
-        message: '请勿超过30个字符',
-      },
-      required: true,
-      placeholder: '推荐英文',
-    },
-
-    {
-      types: '[]string',
-      map_name: 'label',
-      slice: true,
-    },
-    {
-      map_name: 'qiankun',
-      types: 'object',
-      children: [
-        {
-          types: 'string',
-          map_name: 'user_name',
-          label: '用户名',
-          rules: {
-            max: 30,
-            message: '请勿超过30个字符',
-          },
-          required: true,
-          placeholder: '推荐英文',
-        },
-        {
-          types: '[]string',
-          map_name: 'label',
-          slice: true,
-        },
-      ],
-    },
-  ];
+  const { welCome } = useModel('useAuthModel');
 
   return (
     <PageHeaderWrapper>
       <Card>
         <Alert
-          message="后台管理系统正式发布了 "
+          message={welCome?.title || '后台管理系统正式发布了'}
           type="success"
           showIcon
           banner
@@ -66,20 +22,37 @@ export default () => {
             marginBottom: 24,
           }}
         />
-        <Typography.Text strong>
-          <span>欢迎使用后台管理系统,如果未看到任何菜单,请联系管理员!</span>
-        </Typography.Text>
-        <p>
+        {welCome?.main_text ? (
+          welCome.main_text?.map((d: string, i: number) => {
+            return (
+              <Typography.Text key={i} strong>
+                <span>{d}</span>
+              </Typography.Text>
+            );
+          })
+        ) : (
           <Typography.Text strong>
-            <span>请勿进行任何越权操作,每次操作均有记录,no zuo no die!</span>
+            <span>欢迎使用后台管理系统,如果未看到任何菜单,请联系管理员!</span>
           </Typography.Text>
-        </p>
+        )}
 
-        <p className={'mt-10'}>
-          <Typography.Text>
-            <span>模型暂不支持修改创建时间 修改时间</span>
-          </Typography.Text>
-        </p>
+        {welCome?.desc ? (
+          welCome.desc?.map((d: string, i: number) => {
+            return (
+              <p className={'mt-10'} key={i}>
+                <Typography.Text>
+                  <span>{d}</span>
+                </Typography.Text>
+              </p>
+            );
+          })
+        ) : (
+          <p className={'mt-10'}>
+            <Typography.Text>
+              <span>模型暂不支持修改创建时间 修改时间</span>
+            </Typography.Text>
+          </p>
+        )}
       </Card>
     </PageHeaderWrapper>
   );
