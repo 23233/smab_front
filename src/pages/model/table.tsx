@@ -48,6 +48,7 @@ interface p {
     put?: boolean;
     post?: boolean;
   };
+  extraOp?: Array<any>; // 额外操作
 }
 
 export interface fieldInfo {
@@ -90,6 +91,7 @@ const ModelTableView: React.FC<p> = ({
   modelFormat = {},
   fetchUri,
   permission,
+  extraOp = [],
   ...props
 }) => {
   const [data, setData] = useState<Array<any>>([]);
@@ -261,6 +263,7 @@ const ModelTableView: React.FC<p> = ({
         );
       },
     },
+    ...extraOp,
   ];
 
   // 删除

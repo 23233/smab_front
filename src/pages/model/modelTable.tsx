@@ -1,53 +1,35 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  useDebounceEffect,
-  useMount,
-  useRequest,
-  useUnmount,
-  useUpdateEffect,
-} from 'ahooks';
-import Fetch, { C } from '@/utils/fetch';
-import RestApiGen from '@/utils/restApiGen';
-import moment from 'moment';
-import {
-  Button,
-  message,
-  Popconfirm,
-  Select,
-  Space,
-  Table,
-  TableColumnsType,
-  Input,
-  Image,
-  Spin,
-  Result,
-} from 'antd';
-import {
-  CompressOutlined,
-  DeleteOutlined,
-  DiffOutlined,
-  EditOutlined,
-  UnlockOutlined,
-} from '@ant-design/icons';
-import { openDrawerFields } from '@/components/drawShowField';
-import useRealLocation from '@/components/useRealLocation';
+import React from 'react';
+import { useDebounceEffect, useUnmount, useUpdateEffect } from 'ahooks';
+import { Button, Spin, Result } from 'antd';
+
 import useUrlState from '@ahooksjs/use-url-state';
-import { openDrawerEditFields } from '@/components/drawEditField';
-import useModelPer from '@/pages/model/useModelPer';
-import SimpleTable from '@/components/simpleTable';
 import ModelTableView from '@/pages/model/table';
 import useGetModelInfo from '@/pages/model/useGetModelInfo';
-
-const { Option } = Select;
+import Fetch from '@/utils/fetch';
 
 interface p {
   modelName: string;
+  urlPrefix: string;
+  permission?: {
+    delete?: boolean;
+    put?: boolean;
+    post?: boolean;
+  };
+  extraOp?: Array<any>; // 额外操作
 }
 
-const ModelTable: React.FC<p> = ({ modelName, ...props }) => {
-  const { modelInfo, modelFormat, loading } = useGetModelInfo(modelName);
+const ModelTable: React.FC<p> = ({
+  modelName,
+  urlPrefix,
+  permission,
+  extraOp = [],
+  ...props
+}) => {
+  const { modelInfo, modelFormat, loading } = useGetModelInfo(
+    modelName,
+    Fetch.getModelInfo,
+  );
 
-  const per = useModelPer(modelName);
   const [uriState, setUriState] = useUrlState(undefined, {
     navigateMode: 'replace',
   });
@@ -85,8 +67,9 @@ const ModelTable: React.FC<p> = ({ modelName, ...props }) => {
             modelName={modelName}
             modelInfo={modelInfo}
             modelFormat={modelFormat}
-            fetchUri={C + '/' + modelName}
-            permission={per}
+            fetchUri={urlPrefix + modelName}
+            permission={permission}
+            extraOp={extraOp}
           />
         ) : (
           <Result

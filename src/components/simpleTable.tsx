@@ -23,7 +23,6 @@ const SimpleTable: React.FC<simpleTable> = ({
   loading,
   ...props
 }) => {
-  //
   const showExtraTable = (field: any, record: any) => {
     let data = (field?.kind === 'slice' ? record : [record])?.map((d: any) => {
       const p = {
@@ -96,6 +95,10 @@ const SimpleTable: React.FC<simpleTable> = ({
           />
         );
     }
+    // bool类型解析成0和1
+    if (fields.kind === 'bool') {
+      return !!value ? 1 : 0;
+    }
     return value;
   };
 
@@ -122,7 +125,6 @@ const SimpleTable: React.FC<simpleTable> = ({
             });
           });
         }
-
         // 如果是时间也跳
         if (d.is_time) {
           r.push({
@@ -134,6 +136,7 @@ const SimpleTable: React.FC<simpleTable> = ({
               );
             },
           });
+          return;
         }
         // 如果是数组
         if (d.kind === 'slice') {
@@ -146,6 +149,7 @@ const SimpleTable: React.FC<simpleTable> = ({
                     {record?.[d.map_name] ? (
                       <div
                         onClick={() => showExtraTable(d, record?.[d.map_name])}
+                        style={{ color: '#1288f6' }}
                       >
                         {d.children?.length} 个字段
                       </div>
@@ -184,6 +188,7 @@ const SimpleTable: React.FC<simpleTable> = ({
                   <div style={{ width: 100 }}>
                     <div
                       onClick={() => showExtraTable(d, record?.[d.map_name])}
+                      style={{ color: '#1288f6', cursor: 'pointer' }}
                     >
                       {d?.children?.length} 个字段
                     </div>

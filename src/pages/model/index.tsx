@@ -6,6 +6,8 @@ import { tabItem } from '@/define/exp';
 import { sortBy } from 'lodash';
 import { Result, Button } from 'antd';
 import ModelTable from '@/pages/model/modelTable';
+import { C } from '@/utils/fetch';
+import useModelPer from '@/pages/model/useModelPer';
 
 interface p {}
 
@@ -14,6 +16,7 @@ const V: React.FC<p> = ({ ...props }) => {
   const { userPer } = useModel('useAuthModel');
   const [tabs, setTabs] = useState<Array<tabItem>>([]);
   const [tab, setTab] = useState<tabItem>();
+  const per = useModelPer((tab?.id as string) || '');
 
   const location = useRealLocation();
 
@@ -60,12 +63,12 @@ const V: React.FC<p> = ({ ...props }) => {
       {tabs?.length ? (
         <React.Fragment>
           {/*平铺比较安全*/}
-          <div className={'flex flex-wrap mb-2'}>
+          <div className="flex flex-wrap">
             {tabs.map((d) => {
               return (
                 <div
-                  className={`p-1 px-2 text-md ${
-                    tab?.id === d.id ? 'border-b-2 border-blue-400' : ''
+                  className={`p-1 px-2 text-md border-b-2 border-transparent ${
+                    tab?.id === d.id ? 'border-blue-400' : ''
                   } cursor-pointer mr-2`}
                   title={d.label}
                   key={d.id}
@@ -77,7 +80,13 @@ const V: React.FC<p> = ({ ...props }) => {
             })}
           </div>
 
-          {!!tab && <ModelTable modelName={tab.id as string} />}
+          {!!tab && (
+            <ModelTable
+              modelName={tab.id as string}
+              urlPrefix={C + '/'}
+              permission={per}
+            />
+          )}
         </React.Fragment>
       ) : (
         <Result

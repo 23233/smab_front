@@ -27,8 +27,10 @@ const EditUserBaseModal: React.FC<p> = ({
 }) => {
   const { userPer, userInfo } = useModel('useAuthModel');
   const [selectModel, setSelectModel] = useState<string>('');
-  const { modelInfo, loading: getModelInfoLoading } =
-    useGetModelInfo(selectModel);
+  const { modelInfo, loading: getModelInfoLoading } = useGetModelInfo(
+    selectModel,
+    Fetch.getModelInfo,
+  );
 
   const modelSelect = useMemo(() => {
     let r = [] as Array<any>;
