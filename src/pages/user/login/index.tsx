@@ -50,7 +50,11 @@ export default (props: any) => {
                 name="user_name"
                 rules={[{ required: true, message: '请输入用户名' }]}
               >
-                <Input prefix={<UserOutlined />} placeholder={'请输入用户名'} />
+                <Input
+                  prefix={<UserOutlined />}
+                  placeholder={'请输入用户名'}
+                  autoFocus
+                />
               </Form.Item>
 
               <Form.Item

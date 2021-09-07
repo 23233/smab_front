@@ -6,9 +6,7 @@ import {
   useUnmount,
   useUpdateEffect,
 } from 'ahooks';
-import Fetch, { C } from '@/utils/fetch';
 import RestApiGen from '@/utils/restApiGen';
-import moment from 'moment';
 import {
   Button,
   message,

@@ -51,7 +51,13 @@ const SimpleTable: React.FC<simpleTable> = ({
         case 'img':
           return value?.map((vv, i) => {
             return (
-              <Image key={i} src={vv} title={vv} style={{ maxHeight: 60 }} />
+              <Image
+                key={i}
+                src={vv}
+                title={vv}
+                style={{ maxHeight: 60 }}
+                referrerPolicy={'no-referrer'}
+              />
             );
           });
         default:
@@ -92,6 +98,7 @@ const SimpleTable: React.FC<simpleTable> = ({
             src={value}
             title={fields.comment || fields.map_name}
             style={{ maxHeight: 60 }}
+            referrerPolicy={'no-referrer'}
           />
         );
     }
@@ -102,115 +109,107 @@ const SimpleTable: React.FC<simpleTable> = ({
     return value;
   };
 
-  const columns = useMemo(() => {
+  const parseCol = (l: Array<fieldInfo>) => {
     let r = [] as Array<any>;
-    if (data.length && field_list?.length) {
-      field_list.map((d) => {
-        // 如果是默认模型上层 则遍历下层
-        if (d?.is_default_wrap || d?.is_inline) {
-          return d?.children?.map((b) => {
-            return r?.push({
-              title: b.comment || b.name,
-              dataIndex: b.map_name,
-              render: (text: string) => {
-                return (
-                  <div
-                    style={{ width: 150, wordBreak: 'break-all' }}
-                    title={text}
-                  >
-                    {text}
-                  </div>
-                );
-              },
-            });
-          });
-        }
-        // 如果是时间也跳
-        if (d.is_time) {
-          r.push({
-            title: d.comment || d.name,
-            dataIndex: d.map_name,
-            render: (text: string) => {
-              return (
-                <div style={{ width: 150, wordBreak: 'break-all' }}>{text}</div>
-              );
-            },
-          });
-          return;
-        }
-        // 如果是数组
-        if (d.kind === 'slice') {
-          if (d?.children_kind === 'struct') {
-            return r.push({
-              title: d.comment || d.name,
-              render: (_: any, record: any) => {
-                return (
-                  <div style={{ width: 100 }}>
-                    {record?.[d.map_name] ? (
-                      <div
-                        onClick={() => showExtraTable(d, record?.[d.map_name])}
-                        style={{ color: '#1288f6' }}
-                      >
-                        {d.children?.length} 个字段
-                      </div>
-                    ) : (
-                      <div className={'text-gray-400'}>暂无内容</div>
-                    )}
-                  </div>
-                );
-              },
-            });
-          }
+    l.map((d) => {
+      // 如果是默认模型上层 则遍历下层
+      if (d.is_inline) {
+        return r.push(...parseCol(d?.children));
+      }
+      // 如果是时间也跳
+      if (d.is_time) {
+        r.push({
+          title: d.comment || d.name,
+          dataIndex: d.map_name,
+          render: (text: string) => {
+            return (
+              <div style={{ width: 150, wordBreak: 'break-all' }}>{text}</div>
+            );
+          },
+        });
+        return;
+      }
+      // 如果是数组
+      if (d.kind === 'slice') {
+        if (d?.children_kind === 'struct') {
           return r.push({
             title: d.comment || d.name,
-            dataIndex: d.map_name,
-            render: (text: string) => {
+            render: (_: any, record: any) => {
               return (
-                <div style={{ width: 200, wordBreak: 'break-all' }}>
-                  {sliceTagNameToElement(
-                    customTagParse(d.custom_tag)?.t,
-                    text,
-                    d,
+                <div style={{ width: 100 }}>
+                  {record?.[d.map_name] ? (
+                    <div
+                      onClick={() => showExtraTable(d, record?.[d.map_name])}
+                      style={{ color: '#1288f6' }}
+                    >
+                      {d.children?.length} 个字段
+                    </div>
+                  ) : (
+                    <div className={'text-gray-400'}>暂无内容</div>
                   )}
                 </div>
               );
             },
           });
         }
-
-        // 如果是struct
-        if (d.kind === 'struct') {
-          if (d?.children?.length) {
-            return r.push({
-              title: d.comment || d.name,
-              render: (_: any, record: any) => {
-                return (
-                  <div style={{ width: 100 }}>
-                    <div
-                      onClick={() => showExtraTable(d, record?.[d.map_name])}
-                      style={{ color: '#1288f6', cursor: 'pointer' }}
-                    >
-                      {d?.children?.length} 个字段
-                    </div>
-                  </div>
-                );
-              },
-            });
-          }
-        }
-
         return r.push({
           title: d.comment || d.name,
           dataIndex: d.map_name,
           render: (text: string) => {
             return (
-              <div style={{ width: 100 }}>
-                {tagNameToElement(customTagParse(d.custom_tag)?.t, text, d)}
+              <div style={{ width: 200, wordBreak: 'break-all' }}>
+                {sliceTagNameToElement(
+                  customTagParse(d.custom_tag)?.t,
+                  text,
+                  d,
+                )}
               </div>
             );
           },
         });
+      }
+
+      // 如果是struct
+      if (d.kind === 'struct') {
+        if (d?.children?.length) {
+          return r.push({
+            title: d.comment || d.name,
+            render: (_: any, record: any) => {
+              return (
+                <div style={{ width: 100 }}>
+                  <div
+                    onClick={() => showExtraTable(d, record?.[d.map_name])}
+                    style={{ color: '#1288f6', cursor: 'pointer' }}
+                  >
+                    {d?.children?.length} 个字段
+                  </div>
+                </div>
+              );
+            },
+          });
+        }
+      }
+
+      return r.push({
+        title: d.comment || d.name,
+        dataIndex: d.map_name,
+        render: (text: string) => {
+          return (
+            <div style={{ width: 100 }}>
+              {tagNameToElement(customTagParse(d.custom_tag)?.t, text, d)}
+            </div>
+          );
+        },
       });
+    });
+    return r;
+  };
+
+  const columns = useMemo(() => {
+    let r = [] as Array<any>;
+
+    if (data.length && field_list?.length) {
+      r = parseCol(field_list);
     }
     if (!r.some((b: any) => b?.dataIndex == '_id')) {
       r.unshift({
