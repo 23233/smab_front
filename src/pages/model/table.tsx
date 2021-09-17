@@ -18,6 +18,8 @@ import {
   Input,
   Image,
   Popover,
+  Col,
+  Row,
 } from 'antd';
 import {
   CompressOutlined,
@@ -101,6 +103,8 @@ const ModelTableView: React.FC<p> = ({
   const [search, setSearch] = useState<string>();
   const [sortMode, setSortMode] = useState<'_o' | '_od'>('_o');
   const [sortField, setSortField] = useState<string>();
+  const [selectField, setSelectField] = useState<string>();
+  const [fieldValue, setFieldValue] = useState<string>('');
   const cover = useRef<boolean>(false);
   const modelInstance = useRef<any>();
 
@@ -205,6 +209,9 @@ const ModelTableView: React.FC<p> = ({
         setPage(1);
       }
       setData([]);
+      setFieldValue('');
+      setSelectField(undefined);
+      setSearch('');
     }
   }, [modelInfo]);
 
@@ -225,6 +232,11 @@ const ModelTableView: React.FC<p> = ({
     }
     if (search !== undefined) {
       p['_s'] = '__' + search + '__';
+    }
+    if (selectField) {
+      if (fieldValue) {
+        p[selectField] = fieldValue;
+      }
     }
     getData(p);
   };
@@ -449,34 +461,44 @@ const ModelTableView: React.FC<p> = ({
     runFetch();
   };
 
+  const runFilter = (value: string) => {
+    if (!value) {
+      setFieldValue('');
+    }
+    runFetch();
+  };
+
   return (
     <React.Fragment>
       <div className={'my-2'}>
-        <Space>
-          {`模型共:${docTotal || 0}条`}
-          <div>
-            <Select value={sortMode} onChange={setSortMode}>
-              <Option value={'_o'}>升序</Option>
-              <Option value={'_od'}>降序</Option>
-            </Select>
-            <Select
-              value={sortField}
-              onChange={setSortField}
-              style={{ width: 150 }}
-            >
-              {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
-                return (
-                  <Option value={d.map_name} key={d.map_name}>
-                    {d.comment || d.map_name}
-                  </Option>
-                );
-              })}
-            </Select>
-          </div>
-          {permission?.post && <Button onClick={runAddBefore}>新增</Button>}
-          <Button onClick={runRefresh}>刷新</Button>
-
-          <div>
+        <Row justify={'start'} align={'middle'} gutter={8}>
+          <Col>{`模型共:${docTotal || 0}条`}</Col>
+          <Col>
+            <div>
+              <Select value={sortMode} onChange={setSortMode}>
+                <Option value={'_o'}>升序</Option>
+                <Option value={'_od'}>降序</Option>
+              </Select>
+              <Select
+                value={sortField}
+                onChange={setSortField}
+                style={{ width: 150 }}
+              >
+                {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
+                  return (
+                    <Option value={d.map_name} key={d.map_name}>
+                      {d.comment || d.map_name}
+                    </Option>
+                  );
+                })}
+              </Select>
+            </div>
+          </Col>
+          <Col>
+            {permission?.post && <Button onClick={runAddBefore}>新增</Button>}
+            <Button onClick={runRefresh}>刷新</Button>
+          </Col>
+          <Col>
             <Input.Search
               placeholder={'请输入关键词搜索'}
               allowClear
@@ -484,27 +506,54 @@ const ModelTableView: React.FC<p> = ({
               onChange={(e) => setSearch(e.target.value)}
               onSearch={runSearch}
             />
-          </div>
-          {!!filter && (
-            <Popover
-              trigger={['click']}
-              title={'筛选'}
-              content={
-                <div>
-                  {filter?.map((d, i) => {
+          </Col>
+          <Col>
+            <Input.Search
+              addonBefore={
+                <Select
+                  value={selectField}
+                  onChange={setSelectField}
+                  style={{ width: 150, textAlign: 'left' }}
+                >
+                  {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
                     return (
-                      <p key={i}>
-                        {d?.Key}:{d?.Value}
-                      </p>
+                      <Option value={d.map_name} key={d.map_name}>
+                        <div>
+                          <b>{d.comment || d.map_name}</b>
+                        </div>
+                        <div style={{ fontSize: 12 }}>{d.types}</div>
+                      </Option>
                     );
                   })}
-                </div>
+                </Select>
               }
-            >
-              <span className={'text-gray-400'}>筛选</span>
-            </Popover>
-          )}
-        </Space>
+              value={fieldValue}
+              onChange={(e) => setFieldValue(e.target.value)}
+              onSearch={runFilter}
+            />
+          </Col>
+          <Col>
+            {!!filter && (
+              <Popover
+                trigger={['click']}
+                title={'筛选'}
+                content={
+                  <div>
+                    {filter?.map((d, i) => {
+                      return (
+                        <p key={i}>
+                          {d?.Key}:{d?.Value}
+                        </p>
+                      );
+                    })}
+                  </div>
+                }
+              >
+                <span className={'text-gray-400'}>筛选</span>
+              </Popover>
+            )}
+          </Col>
+        </Row>
       </div>
       <SimpleTable
         data={data}
