@@ -195,7 +195,10 @@ const SimpleTable: React.FC<simpleTable> = ({
         dataIndex: d.map_name,
         render: (text: string) => {
           return (
-            <div style={{ width: 100 }}>
+            <div
+              style={{ width: 100, maxHeight: 200, overflowY: 'auto' }}
+              className={`no-scrollbar ${text?.length >= 100 ? 'text-xs' : ''}`}
+            >
               {tagNameToElement(customTagParse(d.custom_tag)?.t, text, d)}
             </div>
           );
