@@ -44,6 +44,7 @@ const v = () => {
   const success = useRef<boolean>(false);
   const cover = useRef<boolean>(false);
   const nowSelect = useRef<task>();
+  const dataFormRef = useRef<any>();
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -299,7 +300,7 @@ const v = () => {
         }
       });
 
-      openDataForm({
+      dataFormRef.current = openDataForm({
         fieldsList: fields,
         initValues: initValues,
         onCreate: (values) => activeSuccess(values, active, record),
@@ -339,7 +340,7 @@ const v = () => {
     });
     if (resp.response.status === 200) {
       message.success('处理成功');
-
+      dataFormRef.current?.destroy();
       runRefresh();
     }
     console.log('resp', resp);
@@ -411,6 +412,7 @@ const v = () => {
 
       {userInfo?.super && (
         <DrawerSelectUserOne
+          title={'分配任务给他人'}
           show={show}
           onCancel={setShow}
           onSuccess={resetUserSelectSuccess}

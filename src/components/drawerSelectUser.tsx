@@ -6,6 +6,7 @@ import { Button, Checkbox, Divider, Drawer, Spin, Radio } from 'antd';
 const CheckboxGroup = Checkbox.Group;
 
 interface p {
+  title?: string;
   onSuccess?: Function;
   show: boolean;
   onCancel: Function;
@@ -14,6 +15,7 @@ interface p {
 const DrawerSelectUserOne: React.FC<p> = ({
   show,
   onCancel,
+  title = '分享给用户',
   onSuccess,
   ...props
 }) => {
@@ -44,7 +46,7 @@ const DrawerSelectUserOne: React.FC<p> = ({
     <React.Fragment>
       <Drawer
         visible={show}
-        title={'分享给用户'}
+        title={title}
         width={'70%'}
         onClose={() => onCancel(false)}
       >
