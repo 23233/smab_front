@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useModel } from 'umi';
 import useRealLocation from '@/components/useRealLocation';
 import { useDebounceEffect, useMount, useRequest, useUnmount } from 'ahooks';
@@ -8,6 +8,7 @@ import { Result, Button } from 'antd';
 import ModelTable from '@/pages/model/modelTable';
 import { C } from '@/utils/fetch';
 import useModelPer from '@/pages/model/useModelPer';
+import { groupBy } from 'lodash';
 
 interface p {}
 
@@ -32,6 +33,7 @@ const V: React.FC<p> = ({ ...props }) => {
               tt.push({
                 id: b.title,
                 label: b?.alias || b.title,
+                group: b?.group || '',
               });
             }
           });
@@ -58,27 +60,38 @@ const V: React.FC<p> = ({ ...props }) => {
     }
   });
 
+  const tabs_group = useMemo(() => {
+    if (tabs?.length) {
+      return groupBy(tabs, 'group');
+    }
+    return {};
+  }, [tabs]);
+
   return (
     <React.Fragment>
       {tabs?.length ? (
         <React.Fragment>
-          {/*平铺比较安全*/}
-          <div className="flex flex-wrap">
-            {tabs.map((d) => {
-              return (
-                <div
-                  className={`p-1 px-2 text-md border-b-2 border-transparent ${
-                    tab?.id === d.id ? 'border-blue-400' : ''
-                  } cursor-pointer mr-2`}
-                  title={d.label}
-                  key={d.id}
-                  onClick={() => tabChange(d)}
-                >
-                  {d.label}
-                </div>
-              );
-            })}
-          </div>
+          {Object.keys(tabs_group)?.map((k, i) => {
+            return (
+              <div className="flex flex-wrap align-center" key={`tabs_${i}`}>
+                {!!k && <div className="pr-2 text-sm text-gray-400">{k}:</div>}
+                {tabs_group?.[k].map((d) => {
+                  return (
+                    <div
+                      className={`p-1 px-2 text-md border-b-2 border-transparent ${
+                        tab?.id === d.id ? 'border-blue-400' : ''
+                      } cursor-pointer mr-2`}
+                      title={d.label}
+                      key={d.id}
+                      onClick={() => tabChange(d)}
+                    >
+                      {d.label}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
 
           {!!tab && (
             <ModelTable
