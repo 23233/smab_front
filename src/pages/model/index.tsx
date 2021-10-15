@@ -74,7 +74,9 @@ const V: React.FC<p> = ({ ...props }) => {
           {Object.keys(tabs_group)?.map((k, i) => {
             return (
               <div className="flex flex-wrap align-center" key={`tabs_${i}`}>
-                {!!k && <div className="pr-2 text-sm text-gray-400">{k}:</div>}
+                <div className="pr-2 text-sm text-gray-400">
+                  {k || '未命名'}:
+                </div>
                 {tabs_group?.[k].map((d) => {
                   return (
                     <div
