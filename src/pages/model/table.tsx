@@ -35,6 +35,7 @@ import { openDrawerEditFields } from '@/components/drawEditField';
 import useModelPer from '@/pages/model/useModelPer';
 import { customTagParse } from '@/utils/tools';
 import SimpleTable from '@/components/simpleTable';
+import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
 
 const { Option } = Select;
 
@@ -417,20 +418,165 @@ const ModelTableView: React.FC<p> = ({
     return obj;
   };
 
+  const getSingleScheme = (d: fieldInfo, edit = false): object | undefined => {
+    if (!edit) {
+      if (d.is_created || d.is_updated) {
+        return;
+      }
+    }
+    const title = d.comment || d.map_name;
+    if (d.is_time) {
+      return {
+        title: title,
+        type: 'string',
+        format: 'dateTime',
+        placeholder: '请选择时间',
+      };
+    }
+    if (d.is_geo) {
+      return {
+        title: title,
+        type: 'object',
+        properties: {
+          type: {
+            title: 'geo类型',
+            type: 'string',
+            enum: ['Point'],
+            default: 'Point',
+            required: true,
+            width: '50%',
+          },
+          coordinates: {
+            title: '经纬度',
+            type: 'array',
+            required: true,
+            width: '50%',
+            items: {
+              type: 'object',
+              properties: {
+                op: {
+                  type: 'number',
+                  placeholder: 'lat优先 lng跟上 只需要这两',
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+
+    const kind = d.kind;
+    let t = 'string';
+    if (
+      kind.startsWith('int') ||
+      kind.startsWith('uint') ||
+      kind.startsWith('float')
+    ) {
+      t = 'number';
+    }
+    if (kind === 'bool') {
+      t = 'boolean';
+    }
+    return {
+      title: title,
+      type: t,
+      placeholder: '请输入内容',
+    };
+  };
+
+  const getSliceScheme = (d: fieldInfo, edit = false): object | undefined => {
+    if (d.kind !== 'slice') {
+      return;
+    }
+    const title = d.comment || d.map_name;
+    let t = 'string';
+    if (
+      d.children_kind.startsWith('int') ||
+      d.children_kind.startsWith('uint') ||
+      d.children_kind.startsWith('float')
+    ) {
+      t = 'number';
+    } else if (d.children_kind === 'bool') {
+      t = 'boolean';
+    }
+    // todo 等待解决 https://x-render.gitee.io/form-render/schema/schema#items 目前仅支持对象
+    return {
+      title: title,
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          op: {
+            type: t,
+            placeholder: '请输入' + title,
+          },
+        },
+      },
+    };
+  };
+
+  const modelToFrScheme = (
+    fields: Array<fieldInfo>,
+    edit?: boolean,
+    title?: string,
+  ) => {
+    let obj = {
+      type: 'object',
+      properties: {} as any,
+      displayType: 'row',
+    } as any;
+    if (title) {
+      obj.title = title;
+    }
+
+    for (const d of fields) {
+      if (d.is_default_wrap) {
+        continue;
+      }
+      const title = d.comment || d.map_name;
+
+      let r: any;
+      if (d.kind === 'slice') {
+        // 数组[]struct
+        if (d.children) {
+          r = {
+            title: title,
+            type: 'array',
+            items: modelToFrScheme(d.children, edit, title),
+          };
+        } else {
+          // 单纯数组[]type
+          r = getSliceScheme(d, edit);
+        }
+        // struct
+      } else if (d.children) {
+        // 也有children
+        if (d.is_geo) {
+          r = getSingleScheme(d, edit);
+        } else {
+          r = modelToFrScheme(d.children, edit, title);
+        }
+      } else {
+        // type
+        r = getSingleScheme(d, edit);
+      }
+      if (r) {
+        obj.properties[d.map_name] = r;
+      }
+    }
+    return obj;
+  };
+
   const runAddBefore = () => {
     console.log('新增', modelFormat);
-    // 删掉id
-    if (modelInfo?.field_list?.length) {
-      const tmp = modelParseToJson(modelInfo?.field_list);
-      console.log('新增的fields', tmp);
-      modelInstance.current = openDrawerEditFields({
-        data: tmp,
-        title: `新增${modelInfo?.alias}`,
-        onSuccess: addSuccess,
-      });
-    } else {
-      message.error('获取模型格式失败');
-    }
+
+    // 解析成fr的scheme
+    const scheme = modelToFrScheme(modelInfo?.field_list!);
+
+    console.log('解析的scheme', scheme);
+    openDrawerSchemeForm({
+      scheme: scheme,
+    });
   };
 
   // 刷新
