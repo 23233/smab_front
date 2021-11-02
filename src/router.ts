@@ -50,11 +50,6 @@ export const Routes = [
             component: './dashboard/dynamicIndex',
           },
           {
-            path: ROUTERS.action,
-            name: '动作',
-            component: './action/index',
-          },
-          {
             path: ROUTERS.view,
             name: '任务',
             component: './task/index',
@@ -63,6 +58,11 @@ export const Routes = [
             path: ROUTERS.user,
             name: '用户',
             component: './user/manage/index',
+          },
+          {
+            path: ROUTERS.action,
+            name: '动作',
+            component: './action/index',
           },
           {
             path: ROUTERS.model,
