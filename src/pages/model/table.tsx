@@ -20,6 +20,7 @@ import {
   Popover,
   Col,
   Row,
+  Modal,
 } from 'antd';
 import {
   CompressOutlined,
@@ -31,13 +32,12 @@ import {
 import { openDrawerFields } from '@/components/drawShowField';
 import useRealLocation from '@/components/useRealLocation';
 import useUrlState from '@ahooksjs/use-url-state';
-import { openDrawerEditFields } from '@/components/drawEditField';
-import useModelPer from '@/pages/model/useModelPer';
-import { customTagParse } from '@/utils/tools';
 import SimpleTable from '@/components/simpleTable';
 import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
+import { flatKeyMatch, modelToFrScheme } from '@/pages/model/tools';
 
 const { Option } = Select;
+const { confirm } = Modal;
 
 interface p {
   modelName: string;
@@ -283,66 +283,38 @@ const ModelTableView: React.FC<p> = ({
   };
 
   // 修改完成
-  const editSuccess = (diff: any, mid: string, _data: any) => {
+  const editSuccess = (diff: any, mid: string) => {
     console.log('修改完成', diff, mid);
     if (diff && Object.keys(diff).length) {
       updateData(mid, diff);
+    } else {
+      confirm({
+        title: '检测到空内容',
+        content: '确认提交吗?',
+        type: 'warning',
+        onOk: () => {
+          updateData(mid, diff);
+        },
+      });
     }
   };
 
   // 修改
   const editRecordBefore = (record: any) => {
     console.log('edit record', record);
-    const tmp = modelParseToJson(
-      modelInfo?.field_list as Array<fieldInfo>,
-      true,
-    );
-    const newRecord = inlineReset(
-      record,
-      modelInfo?.field_list as Array<fieldInfo>,
-    );
-    console.log('new record', newRecord);
-    const j = compassArray(tmp, newRecord);
-    console.log('com', j);
-    const id = newRecord['id'] || newRecord['_id'];
-    const refer = modelParseToJson(
-      modelInfo?.field_list as Array<fieldInfo>,
-      true,
-      true,
-    );
-    console.log('refer', refer);
-    modelInstance.current = openDrawerEditFields({
-      data: j,
-      title: `修改${id}`,
-      id: id,
-      reference: refer,
-      onSuccess: editSuccess,
-    });
-  };
 
-  const inlineReset = (record: any, fields: Array<fieldInfo>) => {
-    let obj = { ...record } as any;
-    fields.map((d) => {
-      if (!d.is_default_wrap) {
-        if (d.is_inline) {
-          const v = {} as any;
-          d.children.map((b) => {
-            v[b.map_name] = obj[b.map_name];
-            delete obj[b.map_name];
-          });
-          obj = { ...obj, ...v };
-        }
-      }
-    });
-    return obj;
-  };
+    const scheme = modelToFrScheme(modelInfo?.field_list!, true, '', record);
+    const id = record?.['id'] || record?.['_id'];
 
-  const compassArray = (tmp: any, record: any) => {
-    let obj = {} as any;
-    for (const [key, value] of Object.entries(tmp)) {
-      obj[key] = record?.[key] || value;
-    }
-    return obj;
+    console.log('修改数据', scheme);
+    modelInstance.current = openDrawerSchemeForm({
+      scheme: scheme,
+      onSuccess: (formData) => {
+        const r = flatKeyMatch(formData);
+        console.log('修改后的数据', r);
+        editSuccess(r, id);
+      },
+    });
   };
 
   const modelSortFields = (fields: Array<fieldInfo>) => {
@@ -362,209 +334,16 @@ const ModelTableView: React.FC<p> = ({
     console.log('新增完成', diff);
     if (diff && Object.keys(diff).length) {
       addData(diff);
-    }
-  };
-
-  // 模型转换为json
-  const modelParseToJson = (
-    fields: Array<fieldInfo>,
-    edit?: boolean,
-    real?: boolean,
-  ) => {
-    let obj = {} as any;
-
-    for (const d of fields) {
-      let value = '' as any;
-      if (d.is_pk) {
-        continue;
-      }
-      if (!edit) {
-        if (d.is_created || d.is_updated) {
-          continue;
-        }
-      }
-      if (d.is_default_wrap || d.is_inline) {
-        obj = { ...obj, ...modelParseToJson(d.children, edit, real) };
-        continue;
-      } else if (d.is_time) {
-        value = '';
-      } else if (d.kind === 'slice') {
-        if (d.children) {
-          value = [modelParseToJson(d.children, edit, real)];
-        } else {
-          if (d.children_kind.startsWith('int')) {
-            value = real ? [d.children_kind] : [];
-          } else if (d.children_kind.startsWith('uint')) {
-            value = real ? [d.children_kind] : [];
-          } else if (d.children_kind.startsWith('float')) {
-            value = real ? [d.children_kind] : [];
-          } else {
-            value = real ? ['string'] : [];
-          }
-        }
-      } else if (d.kind === 'struct') {
-        value = modelParseToJson(d.children, edit, real);
-      } else {
-        if (
-          d.kind.startsWith('int') ||
-          d.kind.startsWith('uint') ||
-          d.kind.startsWith('float')
-        ) {
-          value = 0;
-        }
-      }
-      obj[d.map_name] = value;
-    }
-    return obj;
-  };
-
-  const getSingleScheme = (d: fieldInfo, edit = false): object | undefined => {
-    if (!edit) {
-      if (d.is_created || d.is_updated) {
-        return;
-      }
-    }
-    const title = d.comment || d.map_name;
-    if (d.is_time) {
-      return {
-        title: title,
-        type: 'string',
-        format: 'dateTime',
-        placeholder: '请选择时间',
-      };
-    }
-    if (d.is_geo) {
-      return {
-        title: title,
-        type: 'object',
-        properties: {
-          type: {
-            title: 'geo类型',
-            type: 'string',
-            enum: ['Point'],
-            default: 'Point',
-            required: true,
-            width: '50%',
-          },
-          coordinates: {
-            title: '经纬度',
-            type: 'array',
-            required: true,
-            width: '50%',
-            items: {
-              type: 'object',
-              properties: {
-                op: {
-                  type: 'number',
-                  placeholder: 'lat优先 lng跟上 只需要这两',
-                },
-              },
-            },
-          },
+    } else {
+      confirm({
+        title: '检测到空内容',
+        content: '确认提交吗?',
+        type: 'warning',
+        onOk: () => {
+          addData(diff);
         },
-      };
+      });
     }
-
-    const kind = d.kind;
-    let t = 'string';
-    if (
-      kind.startsWith('int') ||
-      kind.startsWith('uint') ||
-      kind.startsWith('float')
-    ) {
-      t = 'number';
-    }
-    if (kind === 'bool') {
-      t = 'boolean';
-    }
-    return {
-      title: title,
-      type: t,
-      placeholder: '请输入内容',
-    };
-  };
-
-  const getSliceScheme = (d: fieldInfo, edit = false): object | undefined => {
-    if (d.kind !== 'slice') {
-      return;
-    }
-    const title = d.comment || d.map_name;
-    let t = 'string';
-    if (
-      d.children_kind.startsWith('int') ||
-      d.children_kind.startsWith('uint') ||
-      d.children_kind.startsWith('float')
-    ) {
-      t = 'number';
-    } else if (d.children_kind === 'bool') {
-      t = 'boolean';
-    }
-    // todo 等待解决 https://x-render.gitee.io/form-render/schema/schema#items 目前仅支持对象
-    return {
-      title: title,
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          op: {
-            type: t,
-            placeholder: '请输入' + title,
-          },
-        },
-      },
-    };
-  };
-
-  const modelToFrScheme = (
-    fields: Array<fieldInfo>,
-    edit?: boolean,
-    title?: string,
-  ) => {
-    let obj = {
-      type: 'object',
-      properties: {} as any,
-      displayType: 'row',
-    } as any;
-    if (title) {
-      obj.title = title;
-    }
-
-    for (const d of fields) {
-      if (d.is_default_wrap) {
-        continue;
-      }
-      const title = d.comment || d.map_name;
-
-      let r: any;
-      if (d.kind === 'slice') {
-        // 数组[]struct
-        if (d.children) {
-          r = {
-            title: title,
-            type: 'array',
-            items: modelToFrScheme(d.children, edit, title),
-          };
-        } else {
-          // 单纯数组[]type
-          r = getSliceScheme(d, edit);
-        }
-        // struct
-      } else if (d.children) {
-        // 也有children
-        if (d.is_geo) {
-          r = getSingleScheme(d, edit);
-        } else {
-          r = modelToFrScheme(d.children, edit, title);
-        }
-      } else {
-        // type
-        r = getSingleScheme(d, edit);
-      }
-      if (r) {
-        obj.properties[d.map_name] = r;
-      }
-    }
-    return obj;
   };
 
   const runAddBefore = () => {
@@ -574,8 +353,13 @@ const ModelTableView: React.FC<p> = ({
     const scheme = modelToFrScheme(modelInfo?.field_list!);
 
     console.log('解析的scheme', scheme);
-    openDrawerSchemeForm({
+    modelInstance.current = openDrawerSchemeForm({
       scheme: scheme,
+      onSuccess: (formData) => {
+        const r = flatKeyMatch(formData);
+        console.log('提交的数据', r);
+        addSuccess(r);
+      },
     });
   };
 

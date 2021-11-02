@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Drawer } from 'antd';
+import { Button, Drawer } from 'antd';
 import ReactDOM from 'react-dom';
 import SchemeForm from '@/components/formRender';
 import { Error, useForm } from 'form-render';
@@ -56,6 +56,9 @@ const DrawerShowSchemeForm: React.FC<p> = ({
       width={'75%'}
     >
       <SchemeForm form={form} schema={scheme} onFinish={onSuccess} />
+      <Button type="primary" onClick={form.submit} block size={'large'}>
+        提交
+      </Button>
     </Drawer>
   );
 };

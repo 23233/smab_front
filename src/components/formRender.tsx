@@ -1,5 +1,6 @@
 import React from 'react';
 import FormBase, { FRProps } from 'form-render';
+import CustomTimePicker from '@/components/customTime';
 
 interface p extends FRProps {}
 
@@ -9,9 +10,9 @@ interface p extends FRProps {}
 const SchemeForm: React.FC<p> = ({ ...props }) => {
   return (
     <FormBase
-      // widgets={{
-      //   percentage: Percentage,
-      // }}
+      widgets={{
+        c_datetime: CustomTimePicker,
+      }}
       {...props}
     />
   );
