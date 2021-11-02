@@ -268,6 +268,13 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
             </Select>
             <Button onClick={runAdd}>新增</Button>
           </Space>
+          <Button
+            type={'link'}
+            href={'https://x-render.gitee.io/tools/generator/playground'}
+            target={'_blank'}
+          >
+            在线设计表单
+          </Button>
         </Space>
       </div>
 
