@@ -46,7 +46,7 @@ export const Routes = [
           {
             path: ROUTERS.data,
             name: '报表',
-            component: './dashboard/index',
+            component: './dashboard/dynamicIndex',
           },
           {
             path: ROUTERS.view,

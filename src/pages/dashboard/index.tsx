@@ -15,7 +15,6 @@ import {
 import { useRequest, useResponsive } from 'ahooks';
 import { EditOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { useModel, Link } from 'umi';
-import ROUTERS from '@/router';
 import SingleChart from './singleChat';
 import Fetch from '../../utils/fetch';
 import SelectChatType from '@/pages/dashboard/selectChatType';

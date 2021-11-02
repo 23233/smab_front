@@ -165,12 +165,17 @@ export const getSliceScheme = (
 
   let df;
   if (edit) {
-    df = initValue?.map((b: any) => {
-      return {
-        __flat: b,
-      };
-    });
+    if (!isPlainObject(initValue?.[0])) {
+      df = initValue?.map((b: any) => {
+        return {
+          __flat: b,
+        };
+      });
+    } else {
+      df = initValue;
+    }
   }
+  console.log('df', title, df);
 
   // todo 等待解决 https://x-render.gitee.io/form-render/schema/schema#items 目前仅支持对象
   return {
@@ -187,6 +192,30 @@ export const getSliceScheme = (
       },
     },
   };
+};
+
+export const sliceToObject = (obj: any) => {
+  let r = { ...obj };
+  for (const [key, value] of Object.entries(r)) {
+    if (isArray(value)) {
+      const first = value?.[0];
+      if (isPlainObject(first)) {
+        value.map((bb, i) => {
+          r[key][i] = sliceToObject(bb);
+        });
+      } else {
+        r[key] = value.map((bb) => {
+          return {
+            __flat: bb,
+          };
+        });
+      }
+    } else if (isPlainObject(value)) {
+      r[key] = sliceToObject(value);
+    }
+  }
+
+  return r;
 };
 
 export const modelToFrScheme = (
@@ -210,12 +239,13 @@ export const modelToFrScheme = (
       if (!edit) {
         continue;
       }
-      r = modelToFrScheme(d.children, edit, '', initValues?.[d.map_name]);
+      r = modelToFrScheme(d.children, edit, '', initValues);
     } else {
       const title = d.comment || d.map_name;
       if (d.kind === 'slice') {
         // 数组[]struct
         if (d.children) {
+          console.log('[]type', title, initValues?.[d.map_name]);
           r = {
             title: title,
             type: 'array',
@@ -231,12 +261,19 @@ export const modelToFrScheme = (
           // 单纯数组[]type
           r = getSliceScheme(d, edit, initValues?.[d.map_name]);
         }
-        // struct
       } else if (d.children) {
         // 也有children
         if (d.is_geo) {
           r = getSingleScheme(d, edit, initValues?.[d.map_name]);
+        } else if (d.is_inline) {
+          if (!d.bson?.[0]) {
+            const v = modelToFrScheme(d.children, edit, title, initValues);
+            obj.properties = { ...obj.properties, ...v.properties };
+          } else {
+            r = modelToFrScheme(d.children, edit, title, initValues);
+          }
         } else {
+          console.log('有类型的内连');
           r = modelToFrScheme(
             d.children,
             edit,
@@ -270,6 +307,10 @@ export const flatKeyMatch = (formData: any) => {
         if (first.hasOwnProperty('__flat')) {
           r[key] = value.map((b) => {
             return b?.['__flat'];
+          });
+        } else {
+          value.map((dd, i) => {
+            r[key][i] = flatKeyMatch(dd);
           });
         }
       }

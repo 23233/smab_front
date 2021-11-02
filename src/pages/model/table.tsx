@@ -34,7 +34,11 @@ import useRealLocation from '@/components/useRealLocation';
 import useUrlState from '@ahooksjs/use-url-state';
 import SimpleTable from '@/components/simpleTable';
 import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
-import { flatKeyMatch, modelToFrScheme } from '@/pages/model/tools';
+import {
+  flatKeyMatch,
+  modelToFrScheme,
+  sliceToObject,
+} from '@/pages/model/tools';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -302,8 +306,14 @@ const ModelTableView: React.FC<p> = ({
   // 修改
   const editRecordBefore = (record: any) => {
     console.log('edit record', record);
-
-    const scheme = modelToFrScheme(modelInfo?.field_list!, true, '', record);
+    const parseRecord = sliceToObject(record);
+    console.log('转换后的行数据', parseRecord);
+    const scheme = modelToFrScheme(
+      modelInfo?.field_list!,
+      true,
+      '',
+      parseRecord,
+    );
     const id = record?.['id'] || record?.['_id'];
 
     console.log('修改数据', scheme);
