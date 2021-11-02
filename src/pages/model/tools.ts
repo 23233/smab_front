@@ -1,6 +1,7 @@
 // 模型转换为json
 import { fieldInfo } from '@/pages/model/table';
 import { isArray } from 'lodash';
+import { customTagParse } from '@/utils/tools';
 
 export const numberTypeRule = (kind: string) => {
   switch (kind) {
@@ -111,14 +112,16 @@ export const getSingleScheme = (
 
   const kind = d.kind;
 
-  let t = 'string';
-  let rule = {} as any;
-  let placeholder = '请输入内容';
+  let r = {
+    title: title,
+    type: 'string',
+    default: edit ? initValue : undefined,
+    widget: 'input',
+    placeholder: '请输入内容',
+  } as any;
   if (d.is_obj_id) {
-    rule = {
-      min: 24,
-      max: 24,
-    };
+    r.min = 24;
+    r.max = 24;
   }
 
   if (
@@ -126,21 +129,28 @@ export const getSingleScheme = (
     kind.startsWith('uint') ||
     kind.startsWith('float')
   ) {
-    t = 'number';
-    rule = numberTypeRule(kind);
-    placeholder = '请输入数字';
+    const mx = numberTypeRule(kind);
+    r.type = 'number';
+    r.min = mx.min;
+    r.max = mx.max;
+    r.placeholder = '请输入数字';
   }
   if (kind === 'bool') {
-    t = 'boolean';
+    r.type = 'boolean';
   }
 
-  return {
-    title: title,
-    type: t,
-    default: edit ? initValue : undefined,
-    placeholder: placeholder,
-    ...rule,
-  };
+  const customTag = customTagParse(d.custom_tag);
+  if (customTag?.t) {
+    switch (customTag?.t) {
+      case 'textarea':
+        r.widget = customTag?.t;
+        r.props = {
+          autoSize: { minRows: 3, maxRows: 30 },
+        };
+        break;
+    }
+  }
+  return r;
 };
 
 export const getSliceScheme = (
