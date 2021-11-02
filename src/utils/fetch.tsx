@@ -4,6 +4,8 @@ import RestApiGen from '@/utils/restApiGen';
 
 const p = `${prefix}${(window as any)?.smab?.prefix}`;
 
+export const PREFIX = p;
+
 export const v = p + '/v';
 
 export const C = v + '/c';
@@ -79,6 +81,7 @@ const Fetch = {
   task: new RestApiGen(v + '/sm_task'),
   dashboard_screen: new RestApiGen(v + '/sm_dash_board_screen'),
   dashboard: new RestApiGen(v + '/sm_dash_board'),
+  action: new RestApiGen(v + '/sm_action'),
 };
 
 export default Fetch;

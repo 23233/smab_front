@@ -47,3 +47,10 @@ export interface task extends defaultField {
   action?: Array<actionItem>;
   package?: Array<taskPackage>;
 }
+
+export interface action extends defaultField {
+  name: string;
+  scheme: string;
+  post_url: string;
+  scope: string;
+}

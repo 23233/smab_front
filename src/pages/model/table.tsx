@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   useDebounceEffect,
   useMount,
@@ -7,26 +7,31 @@ import {
   useUpdateEffect,
 } from 'ahooks';
 import RestApiGen from '@/utils/restApiGen';
+import Req from 'umi-request';
 import {
   Button,
   message,
   Popconfirm,
   Select,
   Space,
+  Dropdown,
   Table,
   TableColumnsType,
   Input,
   Image,
   Popover,
+  Menu,
   Col,
   Row,
   Modal,
+  notification,
 } from 'antd';
 import {
   CompressOutlined,
   DeleteOutlined,
   DiffOutlined,
   EditOutlined,
+  MoreOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
 import { openDrawerFields } from '@/components/drawShowField';
@@ -39,6 +44,12 @@ import {
   modelToFrScheme,
   sliceToObject,
 } from '@/pages/model/tools';
+import useGetAction from '@/pages/model/useGetAction';
+import { useModel } from 'umi';
+import { action } from '@/define/exp';
+import CONFIG from '@/utils/config';
+import { history } from '@@/core/history';
+import Router from '@/router';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -54,6 +65,7 @@ interface p {
     post?: boolean;
   };
   extraOp?: Array<any>; // 额外操作
+  extraQuery?: {}; // 请求的额外参数
 }
 
 export interface fieldInfo {
@@ -97,8 +109,11 @@ const ModelTableView: React.FC<p> = ({
   fetchUri,
   permission,
   extraOp = [],
+  extraQuery = {},
   ...props
 }) => {
+  const { userInfo } = useModel('useAuthModel');
+
   const [data, setData] = useState<Array<any>>([]);
   const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
@@ -112,6 +127,8 @@ const ModelTableView: React.FC<p> = ({
   const [fieldValue, setFieldValue] = useState<string>('');
   const cover = useRef<boolean>(false);
   const modelInstance = useRef<any>();
+
+  const currentSelect = useRef<any>();
 
   // 把参数变化保留到url上
   const location = useRealLocation();
@@ -147,6 +164,12 @@ const ModelTableView: React.FC<p> = ({
       page_size: undefined,
     });
   });
+
+  const { data: actionList } = useGetAction(
+    Number(location.query?.page) || 1,
+    modelName,
+    { create_user_id: userInfo.id },
+  );
 
   // 获取数据内容
   const { run: getData, loading } = useRequest(new RestApiGen(fetchUri).get, {
@@ -231,6 +254,7 @@ const ModelTableView: React.FC<p> = ({
     const p = {
       page: page,
       page_size: pageSize,
+      ...extraQuery,
     } as any;
     if (sortField) {
       p[sortMode] = sortField;
@@ -245,6 +269,88 @@ const ModelTableView: React.FC<p> = ({
     }
     getData(p);
   };
+
+  const actionSend = async (formData: any, record: any, action: action) => {
+    let r = {
+      record: record,
+      action: action.name,
+    } as any;
+
+    if (!!formData) {
+      r.form = formData;
+    }
+
+    const resp = await Req.post(action.post_url, {
+      data: r,
+      getResponse: true,
+      errorHandler: (error: any) => {
+        return error;
+      },
+    });
+    console.log('action 发起请求结果', resp);
+
+    if (resp) {
+      if (resp?.response?.status < 10) {
+        message.error('发起请求失败');
+        return;
+      }
+
+      if (resp?.response?.status !== 200) {
+        message.error('请求响应非200');
+        return;
+      }
+
+      if (resp?.response?.status === 200) {
+        modelInstance.current?.destroy();
+        message.success('发送成功');
+      }
+
+      return;
+    }
+    message.error('发起请求失败');
+  };
+
+  const actionClick = async (d: action) => {
+    console.log('动作点击', d, currentSelect.current);
+
+    if (d.scheme) {
+      let scheme;
+      try {
+        scheme = JSON.parse(d.scheme);
+      } catch (e) {
+        console.error('动作解析 scheme失败', e);
+        return;
+      }
+      modelInstance.current = openDrawerSchemeForm({
+        title: d.name,
+        scheme: scheme,
+        onSuccess: (formData) => {
+          console.log('action form 提交', formData);
+          actionSend(formData, currentSelect.current, d);
+        },
+      });
+      return;
+    }
+
+    actionSend('', currentSelect.current, d);
+  };
+
+  const actionMenus = useMemo(() => {
+    if (actionList?.length) {
+      return (
+        <Menu>
+          {actionList.map((d, i) => {
+            return (
+              <Menu.Item key={d._id} onClick={() => actionClick(d)}>
+                {d.name}
+              </Menu.Item>
+            );
+          })}
+        </Menu>
+      );
+    }
+    return <div />;
+  }, [actionList]);
 
   const extraColumns = [
     {
@@ -272,6 +378,15 @@ const ModelTableView: React.FC<p> = ({
                   title={'编辑'}
                   onClick={() => editRecordBefore(record)}
                 />
+              )}
+
+              {!!actionList?.length && (
+                <Dropdown overlay={actionMenus} trigger={['click']}>
+                  <MoreOutlined
+                    title={'动作'}
+                    onClick={() => (currentSelect.current = record)}
+                  />
+                </Dropdown>
               )}
             </Space>
           </div>

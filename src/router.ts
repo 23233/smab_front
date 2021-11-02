@@ -13,6 +13,7 @@ const ROUTERS = {
     screen: Main_Prefix + '/dashboard_screen',
     dashBoard: Main_Prefix + '/dashboard',
   },
+  action: Main_Prefix + '/action',
 };
 
 export default ROUTERS;
@@ -47,6 +48,11 @@ export const Routes = [
             path: ROUTERS.data,
             name: '报表',
             component: './dashboard/dynamicIndex',
+          },
+          {
+            path: ROUTERS.action,
+            name: '动作',
+            component: './action/index',
           },
           {
             path: ROUTERS.view,
