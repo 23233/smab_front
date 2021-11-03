@@ -50,6 +50,7 @@ import { action } from '@/define/exp';
 import CONFIG from '@/utils/config';
 import { history } from '@@/core/history';
 import Router from '@/router';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -274,6 +275,8 @@ const ModelTableView: React.FC<p> = ({
     let r = {
       record: record,
       action: action.name,
+      t: dayjs().unix(),
+      table: modelName,
     } as any;
 
     if (!!formData) {
