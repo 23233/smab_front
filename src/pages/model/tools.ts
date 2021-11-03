@@ -143,10 +143,15 @@ export const getSingleScheme = (
   if (customTag?.t) {
     switch (customTag?.t) {
       case 'textarea':
-        r.widget = customTag?.t;
+        r.type = 'string';
+        r.widget = 'textarea';
         r.props = {
           autoSize: { minRows: 3, maxRows: 30 },
         };
+        break;
+      case 'markdown':
+        r.type = 'string';
+        r.widget = 'c_markdown';
         break;
     }
   }

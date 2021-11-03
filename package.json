@@ -35,6 +35,8 @@
     "umi": "^3.5.0"
   },
   "devDependencies": {
+    "@bytemd/plugin-gfm": "^1.10.13",
+    "@bytemd/react": "^1.10.13",
     "@types/lodash": "^4.14.170",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",

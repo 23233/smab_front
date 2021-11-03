@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Drawer } from 'antd';
 import ReactDOM from 'react-dom';
-import SchemeForm from '@/components/formRender';
+import SchemeForm from '@/components/custom/formRender';
 import { Error, useForm } from 'form-render';
 
 interface p {
