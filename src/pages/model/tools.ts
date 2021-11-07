@@ -133,7 +133,13 @@ export const getSingleScheme = (
     r.type = 'number';
     r.min = mx.min;
     r.max = mx.max;
+    r.widget = 'c_number';
     r.placeholder = '请输入数字';
+    r.props = {
+      style: {
+        width: '100%',
+      },
+    };
   }
   if (kind === 'bool') {
     r.type = 'boolean';
