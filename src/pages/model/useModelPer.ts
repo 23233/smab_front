@@ -1,5 +1,6 @@
 import { useModel } from 'umi';
 import { useEffect, useRef, useState } from 'react';
+import { getPer } from '@/pages/model/tools';
 
 export interface useModelRef {
   get: boolean;
@@ -20,37 +21,7 @@ const useModelPer = (modelName: string): useModelRef => {
 
   useEffect(() => {
     if (!!userPer) {
-      if (userInfo?.super) {
-        result.current.get = true;
-        result.current.post = true;
-        result.current.put = true;
-        result.current.delete = true;
-        return;
-      }
-      userPer.map((d: any) => {
-        if (d.key === 'model_i') {
-          d?.children?.map((b: any) => {
-            if (b.title === modelName) {
-              b?.children.map((c: any) => {
-                switch (c.title) {
-                  case 'get':
-                    result.current.get = true;
-                    break;
-                  case 'post':
-                    result.current.post = true;
-                    break;
-                  case 'put':
-                    result.current.put = true;
-                    break;
-                  case 'delete':
-                    result.current.delete = true;
-                    break;
-                }
-              });
-            }
-          });
-        }
-      });
+      result.current = getPer(modelName, userPer, userInfo?.super);
     }
   }, [userPer]);
 

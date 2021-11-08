@@ -3,6 +3,7 @@ import FormBase, { FRProps } from 'form-render';
 import CustomTimePicker from '@/components/custom/customTime';
 import CustomMarkdown from '@/components/custom/customMarkdown';
 import { InputNumber } from 'antd';
+import CustomFk from '@/components/custom/customFk';
 
 interface p extends FRProps {}
 
@@ -16,6 +17,7 @@ const SchemeForm: React.FC<p> = ({ ...props }) => {
         c_datetime: CustomTimePicker,
         c_markdown: CustomMarkdown,
         c_number: InputNumber,
+        c_fk: CustomFk,
       }}
       {...props}
     />

@@ -2,6 +2,7 @@
 import { fieldInfo } from '@/pages/model/table';
 import { isArray } from 'lodash';
 import { customTagParse } from '@/utils/tools';
+import { useModelRef } from '@/pages/model/useModelPer';
 
 export const numberTypeRule = (kind: string) => {
   switch (kind) {
@@ -146,6 +147,7 @@ export const getSingleScheme = (
   }
 
   const customTag = customTagParse(d.custom_tag);
+  console.log('customTag', d.comment || d.map_name, customTag);
   if (customTag?.t) {
     switch (customTag?.t) {
       case 'textarea':
@@ -161,6 +163,13 @@ export const getSingleScheme = (
         break;
     }
   }
+  // 如果存在外键
+  if (customTag?.fk) {
+    r.type = 'string';
+    r.widget = 'c_fk';
+    r.fk = customTag.fk;
+  }
+
   return r;
 };
 
@@ -198,8 +207,7 @@ export const getSliceScheme = (
   }
   console.log('df', title, df);
 
-  // todo 等待解决 https://x-render.gitee.io/form-render/schema/schema#items 目前仅支持对象
-  return {
+  const r = {
     title: title,
     type: 'array',
     default: df,
@@ -212,7 +220,18 @@ export const getSliceScheme = (
         },
       },
     },
-  };
+  } as any;
+
+  const customTag = customTagParse(d.custom_tag);
+
+  // 如果有外键
+  if (customTag?.fk) {
+    r.items.properties.__flat.widget = 'c_fk';
+    r.items.properties.__flat.fk = customTag.fk;
+  }
+
+  // todo 等待解决 https://x-render.gitee.io/form-render/schema/schema#items 目前仅支持对象
+  return r;
 };
 
 export const sliceToObject = (obj: any) => {
@@ -342,6 +361,54 @@ export const flatKeyMatch = (formData: any) => {
         r[key] = flatKeyMatch(value);
       }
     }
+  }
+  return r;
+};
+
+export const getPer = (
+  modelName: string,
+  userPer: any,
+  isSuperUser?: boolean,
+): useModelRef => {
+  let r = {
+    get: false,
+    post: false,
+    put: false,
+    delete: false,
+  } as useModelRef;
+  if (!!userPer) {
+    if (isSuperUser) {
+      return {
+        get: true,
+        post: true,
+        put: true,
+        delete: true,
+      } as useModelRef;
+    }
+    userPer.map((d: any) => {
+      if (d.key === 'model_i') {
+        d?.children?.map((b: any) => {
+          if (b.title === modelName) {
+            b?.children.map((c: any) => {
+              switch (c.title) {
+                case 'get':
+                  r.get = true;
+                  break;
+                case 'post':
+                  r.post = true;
+                  break;
+                case 'put':
+                  r.put = true;
+                  break;
+                case 'delete':
+                  r.delete = true;
+                  break;
+              }
+            });
+          }
+        });
+      }
+    });
   }
   return r;
 };

@@ -47,9 +47,6 @@ import {
 import useGetAction from '@/pages/model/useGetAction';
 import { useModel } from 'umi';
 import { action } from '@/define/exp';
-import CONFIG from '@/utils/config';
-import { history } from '@@/core/history';
-import Router from '@/router';
 import dayjs from 'dayjs';
 
 const { Option } = Select;
@@ -65,7 +62,12 @@ interface p {
     put?: boolean;
     post?: boolean;
   };
+  page?: number;
+  pageChange?: (newPage: number) => void;
+  pageSize?: number;
+  pageSizeChange?: (newSize: number) => void;
   extraOp?: Array<any>; // 额外操作
+  beforeOp?: Array<any>; // 前置操作
   extraQuery?: {}; // 请求的额外参数
 }
 
@@ -109,15 +111,16 @@ const ModelTableView: React.FC<p> = ({
   modelFormat = {},
   fetchUri,
   permission,
+  beforeOp = [],
   extraOp = [],
   extraQuery = {},
+  page = 1,
+  pageChange,
+  pageSize = 10,
+  pageSizeChange,
   ...props
 }) => {
-  const { userInfo } = useModel('useAuthModel');
-
   const [data, setData] = useState<Array<any>>([]);
-  const [page, setPage] = useState<number>();
-  const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(10);
   const [filter, setFilter] = useState<Array<any>>([]);
   const [docTotal, setDocTotal] = useState<number>();
@@ -131,46 +134,9 @@ const ModelTableView: React.FC<p> = ({
 
   const currentSelect = useRef<any>();
 
-  // 把参数变化保留到url上
-  const location = useRealLocation();
-  const [uriState, setUriState] = useUrlState(undefined, {
-    navigateMode: 'replace',
+  const { data: actionList } = useGetAction(1, modelName, {
+    create_user_id: (window as any)?.c_userInfo?.id,
   });
-
-  useDebounceEffect(
-    () => {
-      setUriState({
-        page: page,
-        page_size: pageSize,
-      });
-    },
-    [page, pageSize],
-    {
-      wait: 800,
-    },
-  );
-
-  useMount(() => {
-    const query = location.query;
-    if (query?.page) {
-      setPage(Number(query?.page));
-    } else {
-      setPage(1);
-    }
-  });
-
-  useUnmount(() => {
-    setUriState({
-      page: undefined,
-      page_size: undefined,
-    });
-  });
-
-  const { data: actionList } = useGetAction(
-    Number(location.query?.page) || 1,
-    modelName,
-    { create_user_id: userInfo.id },
-  );
 
   // 获取数据内容
   const { run: getData, loading } = useRequest(new RestApiGen(fetchUri).get, {
@@ -178,8 +144,8 @@ const ModelTableView: React.FC<p> = ({
     onSuccess: (resp) => {
       if (resp.response.status === 200) {
         setData(resp?.data?.data);
-        setPage(resp.data?.page);
-        setPageSize(resp.data?.page_size);
+        pageChange && pageChange(resp.data?.page);
+        pageSizeChange && pageSizeChange(resp.data?.page_size);
         setTotal(resp?.data?.count);
         setDocTotal(resp?.data?.doc_count);
         setFilter(resp?.data?.filter);
@@ -235,7 +201,7 @@ const ModelTableView: React.FC<p> = ({
       if (page === 1) {
         runFetch();
       } else {
-        setPage(1);
+        pageChange && pageChange(1);
       }
       setData([]);
       setFieldValue('');
@@ -244,7 +210,8 @@ const ModelTableView: React.FC<p> = ({
     }
   }, [modelInfo]);
 
-  useUpdateEffect(() => {
+  useEffect(() => {
+    console.log('pagessss', page);
     if (page) {
       runFetch();
     }
@@ -436,6 +403,7 @@ const ModelTableView: React.FC<p> = ({
 
     console.log('修改数据', scheme);
     modelInstance.current = openDrawerSchemeForm({
+      title: `在${modelInfo?.alias || modelName}修改${id}行数据`,
       scheme: scheme,
       onSuccess: (formData) => {
         const r = flatKeyMatch(formData);
@@ -482,6 +450,7 @@ const ModelTableView: React.FC<p> = ({
 
     console.log('解析的scheme', scheme);
     modelInstance.current = openDrawerSchemeForm({
+      title: `新增` + modelInfo?.alias || modelName + '数据',
       scheme: scheme,
       onSuccess: (formData) => {
         const r = flatKeyMatch(formData);
@@ -500,14 +469,6 @@ const ModelTableView: React.FC<p> = ({
   // 显示
   const showStruct = (content: any, title?: string) => {
     openDrawerFields(content, title);
-  };
-
-  const pageChange = (page: number) => {
-    setPage(page);
-  };
-
-  const pageSizeChange = (current: number, size: number) => {
-    setPageSize(size);
   };
 
   const runSearch = (value: string) => {
@@ -617,14 +578,17 @@ const ModelTableView: React.FC<p> = ({
         data={data}
         field_list={modelInfo?.field_list || []}
         extraColumns={extraColumns}
+        beforeColumns={beforeOp}
         loading={loading || addLoading || deleteLoading || updateLoading}
         pagination={{
           total: total,
           current: page,
           pageSize: pageSize,
           showSizeChanger: true,
-          onShowSizeChange: pageSizeChange,
-          onChange: pageChange,
+          onShowSizeChange: (current: number, size: number) => {
+            pageSizeChange && pageSizeChange(size);
+          },
+          onChange: (newPage) => pageChange && pageChange(newPage),
         }}
       />
     </React.Fragment>

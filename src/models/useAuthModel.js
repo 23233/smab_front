@@ -13,7 +13,9 @@ export default function useAuthModel() {
     manual: true,
     onSuccess: (resp) => {
       if (resp.response.status === 200) {
-        setUserPer(resp.data?.policy?.data || []);
+        let policy = resp.data?.policy?.data || [];
+        window.c_policy = policy;
+        setUserPer(policy);
         setWelCome(resp.data?.welcome || {});
       }
     },
@@ -24,6 +26,10 @@ export default function useAuthModel() {
       getUserInfoReq();
     }
   }, []);
+
+  useEffect(() => {
+    window.c_userInfo = userInfo;
+  }, [userInfo]);
 
   const signin = useCallback((token, userInfo) => {
     // signin implementation
