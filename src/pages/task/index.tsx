@@ -216,6 +216,7 @@ const TaskPage = () => {
     let body = {
       sm_task_id: record._id || record.id,
       sm_user_id: userInfo.id,
+      sm_action_name: active.name,
     } as any;
     if (active.built) {
       let built;
