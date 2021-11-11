@@ -144,6 +144,7 @@ export const getSingleScheme = (
   }
   if (kind === 'bool') {
     r.type = 'boolean';
+    r.widget = 'c_bool';
   }
 
   const customTag = customTagParse(d.custom_tag);
