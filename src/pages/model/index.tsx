@@ -6,7 +6,7 @@ import { tabItem } from '@/define/exp';
 import { sortBy } from 'lodash';
 import { Result, Button } from 'antd';
 import ModelTable from '@/pages/model/modelTable';
-import { C } from '@/utils/fetch';
+import Fetch, { C } from '@/utils/fetch';
 import useModelPer from '@/pages/model/useModelPer';
 import { groupBy } from 'lodash';
 
@@ -100,6 +100,7 @@ const V: React.FC<p> = ({ ...props }) => {
               modelName={tab.id as string}
               urlPrefix={C + '/'}
               permission={per}
+              getModalInfoReq={Fetch.getModelInfo}
             />
           )}
         </React.Fragment>

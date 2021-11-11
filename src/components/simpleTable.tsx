@@ -12,6 +12,7 @@ export interface simpleTable {
   extraColumns?: Array<any>;
   loading?: boolean;
   pagination?: TablePaginationConfig;
+  customColumns?: Array<any>;
 }
 
 const SimpleTable: React.FC<simpleTable> = ({
@@ -21,6 +22,7 @@ const SimpleTable: React.FC<simpleTable> = ({
   beforeColumns = [],
   pagination,
   loading,
+  customColumns = [],
   ...props
 }) => {
   const showExtraTable = (field: any, record: any) => {
@@ -209,6 +211,9 @@ const SimpleTable: React.FC<simpleTable> = ({
   };
 
   const columns = useMemo(() => {
+    if (customColumns?.length) {
+      return customColumns;
+    }
     let r = [] as Array<any>;
 
     if (data.length && field_list?.length) {
@@ -223,7 +228,7 @@ const SimpleTable: React.FC<simpleTable> = ({
 
     r = [...beforeColumns, ...r, ...extraColumns];
     return r;
-  }, [data, field_list, extraColumns]);
+  }, [data, field_list, extraColumns, customColumns]);
 
   return (
     <React.Fragment>

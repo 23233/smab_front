@@ -47,6 +47,13 @@ const DrawerShowSchemeForm: React.FC<p> = ({
   const [show, setShow] = useState<boolean>(true);
   const form = useForm();
 
+  const finish = (formData: any, error: Error[]) => {
+    if (error?.length) {
+      return;
+    }
+    onSuccess && onSuccess(formData, error);
+  };
+
   return (
     <Drawer
       title={title || '数据管理'}
@@ -55,7 +62,7 @@ const DrawerShowSchemeForm: React.FC<p> = ({
       destroyOnClose={true}
       width={'75%'}
     >
-      <SchemeForm form={form} schema={scheme} onFinish={onSuccess} />
+      <SchemeForm form={form} schema={scheme} onFinish={finish} />
       <Button type="primary" onClick={form.submit} block size={'large'}>
         提交
       </Button>

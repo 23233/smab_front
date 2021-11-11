@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   message,
+  Modal,
   Popconfirm,
+  Popover,
   Select,
   Space,
   Spin,
@@ -16,12 +18,16 @@ import { action, task } from '@/define/exp';
 import useRealLocation from '@/components/useRealLocation';
 import useUrlState from '@ahooksjs/use-url-state';
 import { useDebounceEffect, useMount, useUnmount, useRequest } from 'ahooks';
-import { DeleteOutlined } from '@ant-design/icons';
+import { CopyOutlined, DeleteOutlined } from '@ant-design/icons';
 import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
 import copy from 'copy-to-clipboard';
 import useGetAction from '@/pages/model/useGetAction';
+import DrawerSelectUserOne from '@/components/drawerSelectUser';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
+
+const { confirm } = Modal;
 
 interface p {}
 
@@ -41,12 +47,14 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
     pageChange,
     runFetch,
   } = useGetAction(Number(location.query?.page) || 1, '', {
-    create_user_id: userInfo.id,
+    user_id: userInfo.id,
   });
 
   const [selectModel, setSelectModel] = useState<string>();
+  const [show, setShow] = useState<boolean>(false);
 
   const modelInstance = useRef<any>();
+  const selectRecord = useRef<any>(); // 当前选择行
 
   const { run: deleteReq, loading: deleteLoading } = useRequest(
     Fetch.action.delete,
@@ -129,6 +137,7 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
       onSuccess: (formData) => {
         formData.scheme = JSON.stringify(JSON.parse(formData.scheme));
         formData.scope = selectModel;
+        formData.user_id = userInfo.id;
         formData.create_user_id = userInfo.id;
         console.log('新增内容', formData);
         addReq(formData);
@@ -167,7 +176,27 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
         title: 'id',
         dataIndex: '_id',
         render: (text, record) => {
-          return <div style={{ width: 100, fontSize: 12 }}>{text}</div>;
+          return (
+            <div style={{ width: 100, fontSize: 12 }}>
+              <Popover
+                title={'时间周期'}
+                content={
+                  <React.Fragment>
+                    <div style={{ fontSize: 12 }}>
+                      更新于:{dayjs(record?.update_at).fromNow()}
+                    </div>
+                    <div style={{ fontSize: 12 }}>
+                      创建于:{dayjs(record?.create_at).fromNow()}
+                    </div>
+                  </React.Fragment>
+                }
+                placement={'bottomLeft'}
+                trigger={['click']}
+              >
+                {text}
+              </Popover>
+            </div>
+          );
         },
       },
       {
@@ -176,9 +205,9 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
         render: (text) => {
           const item = allModel.find((b) => b.value === text);
           return (
-            <div style={{ width: 100 }}>
+            <div style={{ width: 100, fontSize: 12 }}>
+              {!!item && <div style={{ fontSize: 14 }}>{item.key}</div>}
               {text}
-              {!!item && <div>{item.key}</div>}
             </div>
           );
         },
@@ -238,6 +267,10 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
                 >
                   <DeleteOutlined title={'删除'} />
                 </Popconfirm>
+                <CopyOutlined
+                  title={'复制给他人'}
+                  onClick={() => onCopyToOther(record)}
+                />
               </Space>
             </div>
           );
@@ -245,6 +278,33 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
       },
     ];
   }, [allModel]);
+
+  const onCopyToOther = (record: any) => {
+    selectRecord.current = record;
+    setShow(true);
+  };
+
+  const copyToOtherUser = (id: string) => {
+    setShow(false);
+    if (!selectRecord.current) {
+      message.warning('未选择行');
+      setShow(false);
+      return;
+    }
+    confirm({
+      title: '确认复制任务给他人吗?',
+      onOk: () => {
+        const f = { ...selectRecord.current } as any;
+        f.user_id = id;
+        delete f?.['_id'];
+        delete f?.['id'];
+        delete f?.['update_at'];
+        delete f?.['create_at'];
+        console.log('复制任务', f);
+        addReq(f);
+      },
+    });
+  };
 
   return (
     <React.Fragment>
@@ -290,6 +350,13 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
           onChange: pageChange,
         }}
         scroll={{ x: true }}
+      />
+
+      <DrawerSelectUserOne
+        title={'复制动作给其他人'}
+        show={show}
+        onCancel={setShow}
+        onSuccess={copyToOtherUser}
       />
     </React.Fragment>
   );

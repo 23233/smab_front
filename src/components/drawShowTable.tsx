@@ -24,17 +24,7 @@ export const openDrawerTable = (p: p) => {
 
   function render() {
     setTimeout(() => {
-      ReactDOM.render(
-        <DrawerShowTable
-          name={p.name}
-          data={p.data}
-          extraColumns={p.extraColumns}
-          field_list={p.field_list}
-          loading={p.loading}
-          pagination={p.pagination}
-        />,
-        div,
-      );
+      ReactDOM.render(<DrawerShowTable {...p} />, div);
     });
   }
 

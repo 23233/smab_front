@@ -10,32 +10,35 @@ import { Button, Spin, Result } from 'antd';
 import useUrlState from '@ahooksjs/use-url-state';
 import ModelTableView from '@/pages/model/table';
 import useGetModelInfo from '@/pages/model/useGetModelInfo';
-import Fetch from '@/utils/fetch';
 import useRealLocation from '@/components/useRealLocation';
+import { RequestResponse } from 'umi-request';
+import { permission } from '@/define/exp';
 
 interface p {
   modelName: string;
   urlPrefix: string;
-  permission?: {
-    delete?: boolean;
-    put?: boolean;
-    post?: boolean;
-  };
+  permission?: permission;
   extraOp?: Array<any>; // 额外操作
+  getModalInfoReq: (params: any) => Promise<RequestResponse<any>>;
+  extraQuery?: {}; // 请求的额外参数
+  customColumns?: Array<any>;
 }
 
 const ModelTable: React.FC<p> = ({
   modelName,
+  getModalInfoReq,
   urlPrefix,
   permission,
   extraOp = [],
+  extraQuery = {},
+  customColumns,
   ...props
 }) => {
   const [page, setPage] = useState<number>();
   const [pageSize, setPageSize] = useState<number>(10);
   const { modelInfo, modelFormat, loading } = useGetModelInfo(
     modelName,
-    Fetch.getModelInfo,
+    getModalInfoReq,
   );
   const location = useRealLocation();
 
@@ -96,8 +99,10 @@ const ModelTable: React.FC<p> = ({
             extraOp={extraOp}
             page={page}
             pageChange={setPage}
+            customColumns={customColumns}
             pageSize={pageSize}
             pageSizeChange={setPageSize}
+            extraQuery={extraQuery}
           />
         ) : (
           <Result

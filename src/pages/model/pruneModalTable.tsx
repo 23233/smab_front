@@ -7,11 +7,7 @@ import Fetch from '@/utils/fetch';
 interface p {
   modelName: string;
   urlPrefix: string;
-  permission?: {
-    delete?: boolean;
-    put?: boolean;
-    post?: boolean;
-  };
+  permission?: permission;
   extraOp?: Array<any>; // 额外操作
   beforeOp?: Array<any>; // 前置操作
 }

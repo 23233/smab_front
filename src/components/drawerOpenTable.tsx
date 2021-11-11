@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ModelTable from '@/pages/model/modelTable';
+import { permission } from '@/define/exp';
 import ReactDOM from 'react-dom';
 import { Button, Drawer } from 'antd';
 import { C } from '@/utils/fetch';
@@ -7,11 +7,7 @@ import PruneModalTable from '@/pages/model/pruneModalTable';
 
 interface p {
   name: string;
-  permission?: {
-    delete?: boolean;
-    put?: boolean;
-    post?: boolean;
-  };
+  permission?: permission;
   onSelect?: (record: any) => void;
 }
 

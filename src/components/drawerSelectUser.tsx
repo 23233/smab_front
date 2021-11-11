@@ -48,6 +48,7 @@ const DrawerSelectUserOne: React.FC<p> = ({
         visible={show}
         title={title}
         width={'70%'}
+        destroyOnClose={true}
         onClose={() => onCancel(false)}
       >
         <Spin spinning={getUserLoading}>

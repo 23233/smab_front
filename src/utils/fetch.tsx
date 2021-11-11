@@ -60,6 +60,9 @@ const req = {
   getModelInfo: (name: string) => {
     return Req.get(`${C}/model_info/${name}`);
   },
+  getNormalModelInfo: (name: string) => {
+    return Req.get(`${v}/model_info/${name}`);
+  },
   // 任务变更完成/失败
   changeTaskSuccess: (id: string, success: boolean) => {
     return Req.post(`${v}/task_change_success`, {

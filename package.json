@@ -49,6 +49,7 @@
     "prettier": "^2.2.0",
     "react": "17.x",
     "react-dom": "17.x",
+    "react-gbus": "^1.1.2",
     "typescript": "^4.1.2",
     "yorkie": "^2.0.0"
   }

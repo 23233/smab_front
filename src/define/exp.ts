@@ -12,40 +12,26 @@ export interface defaultField {
   create_at: string;
 }
 
-export interface formItem {
-  label: string;
-  key: string;
-  type: string;
-  slice: boolean;
-  required: boolean;
-  init_value?: string;
-}
-
 export interface actionItem {
   name: string;
-  extra?: Array<formItem>;
   req_uri: string;
-  form_data?: Array<formItem>;
-}
-
-export interface taskPackage {
-  title: string;
-  type: string;
-  value: string;
+  built?: string; // 内置数据 json str
+  scheme?: string; // 表单数据 json str
 }
 
 export interface task extends defaultField {
   name: string;
   desc?: string;
-  msg?: string; // 操作结果
   type: number;
-  allow_change_success: boolean;
+  group?: string;
+  content?: string;
   exp_time: string;
   to_user: string;
   create_user: string;
-  success: string;
+  success: boolean;
   action?: Array<actionItem>;
-  package?: Array<taskPackage>;
+  msg?: string; // 操作结果
+  allow_delete?: boolean;
 }
 
 export interface action extends defaultField {
@@ -53,4 +39,11 @@ export interface action extends defaultField {
   scheme: string;
   post_url: string;
   scope: string;
+}
+
+export interface permission {
+  get?: boolean;
+  delete?: boolean;
+  put?: boolean;
+  post?: boolean;
 }

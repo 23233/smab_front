@@ -35,8 +35,6 @@ import {
   UnlockOutlined,
 } from '@ant-design/icons';
 import { openDrawerFields } from '@/components/drawShowField';
-import useRealLocation from '@/components/useRealLocation';
-import useUrlState from '@ahooksjs/use-url-state';
 import SimpleTable from '@/components/simpleTable';
 import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
 import {
@@ -45,9 +43,11 @@ import {
   sliceToObject,
 } from '@/pages/model/tools';
 import useGetAction from '@/pages/model/useGetAction';
-import { useModel } from 'umi';
 import { action } from '@/define/exp';
 import dayjs from 'dayjs';
+import { permission } from '@/define/exp';
+import { useListener } from 'react-gbus';
+import CONFIG from '@/utils/config';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -57,11 +57,7 @@ interface p {
   modelInfo: modelInfo;
   modelFormat: object;
   fetchUri: string;
-  permission?: {
-    delete?: boolean;
-    put?: boolean;
-    post?: boolean;
-  };
+  permission?: permission;
   page?: number;
   pageChange?: (newPage: number) => void;
   pageSize?: number;
@@ -69,6 +65,7 @@ interface p {
   extraOp?: Array<any>; // 额外操作
   beforeOp?: Array<any>; // 前置操作
   extraQuery?: {}; // 请求的额外参数
+  customColumns?: Array<any>;
 }
 
 export interface fieldInfo {
@@ -118,6 +115,7 @@ const ModelTableView: React.FC<p> = ({
   pageChange,
   pageSize = 10,
   pageSizeChange,
+  customColumns,
   ...props
 }) => {
   const [data, setData] = useState<Array<any>>([]);
@@ -134,8 +132,13 @@ const ModelTableView: React.FC<p> = ({
 
   const currentSelect = useRef<any>();
 
+  // 订阅事件
+  useListener(() => {
+    runRefresh();
+  }, [CONFIG.events.tableRefresh]);
+
   const { data: actionList } = useGetAction(1, modelName, {
-    create_user_id: (window as any)?.c_userInfo?.id,
+    user_id: (window as any)?.c_userInfo?.id,
   });
 
   // 获取数据内容
@@ -211,7 +214,6 @@ const ModelTableView: React.FC<p> = ({
   }, [modelInfo]);
 
   useEffect(() => {
-    console.log('pagessss', page);
     if (page) {
       runFetch();
     }
@@ -502,6 +504,7 @@ const ModelTableView: React.FC<p> = ({
                 value={sortField}
                 onChange={setSortField}
                 style={{ width: 150 }}
+                placeholder={'请选择排序字段'}
               >
                 {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
                   return (
@@ -532,6 +535,7 @@ const ModelTableView: React.FC<p> = ({
                 <Select
                   value={selectField}
                   onChange={setSelectField}
+                  placeholder={'请选择一个字段'}
                   style={{ width: 150, textAlign: 'left' }}
                 >
                   {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
@@ -546,6 +550,7 @@ const ModelTableView: React.FC<p> = ({
                   })}
                 </Select>
               }
+              placeholder={'请输入搜索内容'}
               value={fieldValue}
               onChange={(e) => setFieldValue(e.target.value)}
               onSearch={runFilter}
@@ -579,6 +584,7 @@ const ModelTableView: React.FC<p> = ({
         field_list={modelInfo?.field_list || []}
         extraColumns={extraColumns}
         beforeColumns={beforeOp}
+        customColumns={customColumns}
         loading={loading || addLoading || deleteLoading || updateLoading}
         pagination={{
           total: total,
