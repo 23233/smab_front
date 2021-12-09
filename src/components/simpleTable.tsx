@@ -1,9 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { fieldInfo } from '@/pages/model/table';
 import { Image, Table } from 'antd';
 import { customTagParse } from '@/utils/tools';
 import { TablePaginationConfig } from 'antd/lib/table/interface';
 import openDrawerTable from '@/components/drawShowTable';
+import { openDrawerModelTable } from '@/components/drawerOpenTable';
+import { snakeCase } from 'lodash';
+import { getPer } from '@/pages/model/tools';
 
 export interface simpleTable {
   field_list: Array<fieldInfo>;
@@ -25,6 +28,8 @@ const SimpleTable: React.FC<simpleTable> = ({
   customColumns = [],
   ...props
 }) => {
+  const modalRef = useRef<any>();
+
   const showExtraTable = (field: any, record: any) => {
     let data = (field?.kind === 'slice' ? record : [record])?.map((d: any) => {
       const p = {
@@ -40,6 +45,21 @@ const SimpleTable: React.FC<simpleTable> = ({
       data: data,
       field_list: field.children,
       name: field.comment || field.name,
+    });
+  };
+
+  const openDrawer = (fkName: string, onSelectId: string) => {
+    console.log('表格打开外键信息', fkName);
+    modalRef.current = openDrawerModelTable({
+      name: snakeCase(fkName),
+      permission: getPer(
+        fkName,
+        (window as any)?.c_policy,
+        (window as any)?.c_userInfo?.super,
+      ),
+      extraQuery: {
+        _id: onSelectId,
+      },
     });
   };
 
@@ -93,22 +113,40 @@ const SimpleTable: React.FC<simpleTable> = ({
     value: string,
     fields: fieldInfo,
   ) => {
-    switch (tagName) {
-      case 'img':
-        return (
-          <Image
-            src={value}
-            title={fields.comment || fields.map_name}
-            style={{ maxHeight: 60 }}
-            referrerPolicy={'no-referrer'}
-          />
-        );
+    const inline = () => {
+      switch (tagName) {
+        case 'img':
+          return (
+            <Image
+              src={value}
+              title={fields.comment || fields.map_name}
+              style={{ maxHeight: 60 }}
+              referrerPolicy={'no-referrer'}
+            />
+          );
+      }
+      // bool类型解析成0和1
+      if (fields.kind === 'bool') {
+        return !!value ? 1 : 0;
+      }
+      return value;
+    };
+
+    const t = customTagParse(fields.custom_tag);
+
+    // 判断是否有外键
+    if (t?.fk) {
+      return (
+        <div
+          style={{ color: '#52c41a', cursor: 'pointer' }}
+          title={'外键'}
+          onClick={() => openDrawer(t?.fk, value)}
+        >
+          {inline()}
+        </div>
+      );
     }
-    // bool类型解析成0和1
-    if (fields.kind === 'bool') {
-      return !!value ? 1 : 0;
-    }
-    return value;
+    return inline();
   };
 
   const parseCol = (l: Array<fieldInfo>) => {

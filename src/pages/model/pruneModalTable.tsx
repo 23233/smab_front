@@ -3,6 +3,7 @@ import { Button, Spin, Result } from 'antd';
 import ModelTableView from '@/pages/model/table';
 import useGetModelInfo from '@/pages/model/useGetModelInfo';
 import Fetch from '@/utils/fetch';
+import { permission } from '@/define/exp';
 
 interface p {
   modelName: string;
@@ -10,6 +11,7 @@ interface p {
   permission?: permission;
   extraOp?: Array<any>; // 额外操作
   beforeOp?: Array<any>; // 前置操作
+  extraQuery?: Record<string, any>;
 }
 
 const PruneModalTable: React.FC<p> = ({
@@ -18,6 +20,7 @@ const PruneModalTable: React.FC<p> = ({
   permission,
   extraOp = [],
   beforeOp = [],
+  extraQuery = {},
   ...props
 }) => {
   const [page, setPage] = useState<number>(1);
@@ -40,6 +43,7 @@ const PruneModalTable: React.FC<p> = ({
             permission={permission}
             beforeOp={beforeOp}
             extraOp={extraOp}
+            extraQuery={extraQuery}
             page={page}
             pageChange={setPage}
             pageSize={pageSize}

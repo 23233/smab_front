@@ -9,6 +9,7 @@ interface p {
   name: string;
   permission?: permission;
   onSelect?: (record: any) => void;
+  extraQuery?: Record<string, any>;
 }
 
 export const openDrawerModelTable = (p: p) => {
@@ -43,6 +44,7 @@ const DrawerModelTable: React.FC<p> = ({
   name,
   permission,
   onSelect,
+  extraQuery = {},
   ...props
 }) => {
   const [show, setShow] = useState<boolean>(true);
@@ -85,6 +87,7 @@ const DrawerModelTable: React.FC<p> = ({
           permission={permission}
           urlPrefix={C + '/'}
           beforeOp={checkOp}
+          extraQuery={extraQuery}
         />
       </Drawer>
     </React.Fragment>

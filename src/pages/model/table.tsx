@@ -64,7 +64,7 @@ interface p {
   pageSizeChange?: (newSize: number) => void;
   extraOp?: Array<any>; // 额外操作
   beforeOp?: Array<any>; // 前置操作
-  extraQuery?: {}; // 请求的额外参数
+  extraQuery?: Record<string, any>; // 请求的额外参数
   customColumns?: Array<any>;
 }
 
