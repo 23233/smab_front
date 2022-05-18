@@ -15,7 +15,7 @@ const CustomTimePicker: React.FC<p> = ({ value, onChange, ...props }) => {
   const [v, setV] = useState<string>();
   const change = (date: any, dateString: string) => {
     if (date) {
-      const utc = Moment.utc(date).format('YYYY-MM-DDTHH:mm:ssZ');
+      const utc = Moment(date).utc().format('YYYY-MM-DDTHH:mm:ssZ');
       console.log('日期选择', dateString, utc);
       onChange && onChange(utc);
     } else {
@@ -25,7 +25,7 @@ const CustomTimePicker: React.FC<p> = ({ value, onChange, ...props }) => {
   };
   useMount(() => {
     if (value) {
-      setV(Moment(value).format());
+      setV(Moment.utc(value).local().format());
     }
   });
 
@@ -33,7 +33,7 @@ const CustomTimePicker: React.FC<p> = ({ value, onChange, ...props }) => {
     <React.Fragment>
       <DatePicker
         {...props}
-        value={v ? Moment.utc(v) : undefined}
+        value={v ? Moment(v) : undefined}
         onChange={change}
         showTime
         format={'YYYY-MM-DD HH:mm:ss'}

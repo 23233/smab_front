@@ -8,6 +8,9 @@ export default function useAuthModel() {
   const [userToken, setUserToken] = useSessionStorageState(CONFIG.save.token);
   const [welCome, setWelCome] = useSessionStorageState(CONFIG.save.welcome);
   const [userPer, setUserPer] = useState([]);
+  const [publicKey, setPublicKey] = useSessionStorageState(
+    CONFIG.save.publicKey,
+  );
 
   const { run: getUserInfoReq } = useRequest(Fetch.getUserInfo, {
     manual: true,
@@ -17,6 +20,8 @@ export default function useAuthModel() {
         window.c_policy = policy;
         setUserPer(policy);
         setWelCome(resp.data?.welcome || {});
+        setPublicKey(resp.data?.public_key);
+        window.smab.publicKey = resp.data?.public_key;
       }
     },
   });
@@ -54,5 +59,6 @@ export default function useAuthModel() {
     signout,
     userPer,
     welCome,
+    publicKey,
   };
 }

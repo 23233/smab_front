@@ -5,6 +5,7 @@ import CustomMarkdown from '@/components/custom/customMarkdown';
 import { InputNumber, Switch } from 'antd';
 import CustomFk from '@/components/custom/customFk';
 import CustomBoolean from '@/components/custom/customBool';
+import CustomFileUpload from '@/components/custom/customFileUpload';
 
 interface p extends FRProps {}
 
@@ -20,6 +21,7 @@ const SchemeForm: React.FC<p> = ({ ...props }) => {
         c_number: InputNumber,
         c_fk: CustomFk,
         c_bool: CustomBoolean,
+        c_img_upload: CustomFileUpload,
       }}
       {...props}
     />

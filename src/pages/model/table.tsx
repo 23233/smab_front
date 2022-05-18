@@ -40,16 +40,19 @@ import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
 import {
   flatKeyMatch,
   modelToFrScheme,
+  schemeGetJson,
   sliceToObject,
+  sortScheme,
 } from '@/pages/model/tools';
 import useGetAction from '@/pages/model/useGetAction';
-import { action } from '@/define/exp';
+import { action, fieldInfo, modelInfo } from '@/define/exp';
 import dayjs from 'dayjs';
 import { permission } from '@/define/exp';
 import { useListener } from 'react-gbus';
 import CONFIG from '@/utils/config';
+import { jsonDiff } from '@/utils/tools';
 
-const { Option } = Select;
+const { Option, OptGroup } = Select;
 const { confirm } = Modal;
 
 interface p {
@@ -66,40 +69,6 @@ interface p {
   beforeOp?: Array<any>; // 前置操作
   extraQuery?: Record<string, any>; // 请求的额外参数
   customColumns?: Array<any>;
-}
-
-export interface fieldInfo {
-  name: string;
-  map_name: string;
-  full_name: string;
-  full_map_name: string;
-  params_key: string;
-  comment: string;
-  level: string;
-  kind: string;
-  bson: Array<string>;
-  types: string;
-  index: number;
-  is_pk: boolean;
-  is_obj_id: boolean;
-  is_created: boolean;
-  is_updated: boolean;
-  is_deleted: boolean;
-  is_default_wrap: boolean;
-  is_time: boolean;
-  is_geo: boolean;
-  is_mab_inline: boolean;
-  is_inline: boolean;
-  children: Array<fieldInfo>;
-  children_kind: string;
-  custom_tag: string;
-}
-
-interface modelInfo {
-  map_name: string;
-  full_path: string;
-  alias: string;
-  field_list: Array<fieldInfo>;
 }
 
 const ModelTableView: React.FC<p> = ({
@@ -227,7 +196,7 @@ const ModelTableView: React.FC<p> = ({
       ...extraQuery,
     } as any;
     if (sortField) {
-      p[sortMode] = sortField;
+      p[sortMode] = sortField.replace('__', '.');
     }
     if (search !== undefined) {
       p['_s'] = '__' + search + '__';
@@ -396,12 +365,14 @@ const ModelTableView: React.FC<p> = ({
     const parseRecord = sliceToObject(record);
     console.log('转换后的行数据', parseRecord);
     const scheme = modelToFrScheme(
-      modelInfo?.field_list!,
+      modelInfo?.field_list,
       true,
       '',
       parseRecord,
     );
     const id = record?.['id'] || record?.['_id'];
+
+    const schemeInitJson = schemeGetJson(scheme);
 
     console.log('修改数据', scheme);
     modelInstance.current = openDrawerSchemeForm({
@@ -409,8 +380,14 @@ const ModelTableView: React.FC<p> = ({
       scheme: scheme,
       onSuccess: (formData) => {
         const r = flatKeyMatch(formData);
+        // 先进行内链元素的整理
+
+        const diff = jsonDiff(schemeInitJson, r, modelInfo?.flat_fields!);
         console.log('修改后的数据', r);
-        editSuccess(r, id);
+        console.log('原始数据', schemeInitJson);
+        console.log('diff', diff);
+
+        editSuccess(diff, id);
       },
     });
   };
@@ -489,6 +466,34 @@ const ModelTableView: React.FC<p> = ({
     runFetch();
   };
 
+  const renderItemOption = (d: fieldInfo) => {
+    // 如果是struct 并且不是时间
+    if (d.kind === 'struct' && !d?.is_time && d.children?.length) {
+      return (
+        <OptGroup key={d.level} label={d?.comment || d.map_name}>
+          {d.children.map((b) => {
+            return renderItemOption(b);
+          })}
+        </OptGroup>
+      );
+    }
+
+    return (
+      <Option key={d.level} value={d.params_key}>
+        <div>
+          <b>{d.comment || d.map_name}</b>
+        </div>
+        <div style={{ fontSize: 12 }}>{d.types}</div>
+      </Option>
+    );
+  };
+
+  const sortFiles = useMemo(() => {
+    return (modelInfo?.field_list || [])?.map((d) => {
+      return renderItemOption(d);
+    });
+  }, [modelInfo]);
+
   return (
     <React.Fragment>
       <div className={'my-2'}>
@@ -503,16 +508,10 @@ const ModelTableView: React.FC<p> = ({
               <Select
                 value={sortField}
                 onChange={setSortField}
-                style={{ width: 150 }}
+                style={{ width: 200 }}
                 placeholder={'请选择排序字段'}
               >
-                {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
-                  return (
-                    <Option value={d.map_name} key={d.map_name}>
-                      {d.comment || d.map_name}
-                    </Option>
-                  );
-                })}
+                {sortFiles}
               </Select>
             </div>
           </Col>
@@ -538,16 +537,7 @@ const ModelTableView: React.FC<p> = ({
                   placeholder={'请选择一个字段'}
                   style={{ width: 150, textAlign: 'left' }}
                 >
-                  {modelSortFields(modelInfo?.field_list || [])?.map((d) => {
-                    return (
-                      <Option value={d.map_name} key={d.map_name}>
-                        <div>
-                          <b>{d.comment || d.map_name}</b>
-                        </div>
-                        <div style={{ fontSize: 12 }}>{d.types}</div>
-                      </Option>
-                    );
-                  })}
+                  {sortFiles}
                 </Select>
               }
               placeholder={'请输入搜索内容'}

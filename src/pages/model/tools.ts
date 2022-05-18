@@ -1,8 +1,8 @@
 // 模型转换为json
-import { fieldInfo } from '@/pages/model/table';
 import { isArray } from 'lodash';
 import { customTagParse } from '@/utils/tools';
 import { useModelRef } from '@/pages/model/useModelPer';
+import { fieldInfo } from '@/define/exp';
 
 export const numberTypeRule = (kind: string) => {
   switch (kind) {
@@ -162,6 +162,13 @@ export const getSingleScheme = (
         r.type = 'string';
         r.widget = 'c_markdown';
         break;
+      case 'img':
+        r.type = 'string';
+        r.widget = 'c_img_upload';
+        if (customTag.hasOwnProperty('thumbnail')) {
+          r.thumbnail = true;
+        }
+        break;
     }
   }
   // 如果存在外键
@@ -206,7 +213,6 @@ export const getSliceScheme = (
       df = initValue;
     }
   }
-  console.log('df', title, df);
 
   const r = {
     title: title,
@@ -229,6 +235,17 @@ export const getSliceScheme = (
   if (customTag?.fk) {
     r.items.properties.__flat.widget = 'c_fk';
     r.items.properties.__flat.fk = customTag.fk;
+  }
+
+  if (customTag?.t) {
+    switch (customTag?.t) {
+      case 'img':
+        r.items.properties.__flat.widget = 'c_img_upload';
+        if (customTag.hasOwnProperty('thumbnail')) {
+          r.items.properties.__flat.thumbnail = true;
+        }
+        break;
+    }
   }
 
   // todo 等待解决 https://x-render.gitee.io/form-render/schema/schema#items 目前仅支持对象
@@ -273,14 +290,14 @@ export const modelToFrScheme = (
   if (title) {
     obj.title = title;
   }
-
   for (const d of fields) {
     let r: any;
     if (d.is_default_wrap) {
       if (!edit) {
         continue;
       }
-      r = modelToFrScheme(d.children, edit, '', initValues);
+      const v = modelToFrScheme(d.children, edit, '', initValues);
+      obj.properties = { ...obj.properties, ...v.properties };
     } else {
       const title = d.comment || d.map_name;
       if (d.kind === 'slice') {
@@ -307,11 +324,19 @@ export const modelToFrScheme = (
         if (d.is_geo) {
           r = getSingleScheme(d, edit, initValues?.[d.map_name]);
         } else if (d.is_inline) {
-          if (!d.bson?.[0]) {
-            const v = modelToFrScheme(d.children, edit, title, initValues);
-            obj.properties = { ...obj.properties, ...v.properties };
-          } else {
+          // 如果指定了json标签 那么新增和修改必须变为json形式
+          if (d?.json_tag?.length) {
             r = modelToFrScheme(d.children, edit, title, initValues);
+            obj.properties[d?.json_tag[0] || d.map_name] = r;
+            continue;
+          } else {
+            // 两种情况 bson:"inline" bson:"field,inline"
+            if (d.bson?.[0] != 'inline') {
+              r = modelToFrScheme(d.children, edit, title, initValues);
+            } else {
+              const v = modelToFrScheme(d.children, edit, title, initValues);
+              obj.properties = { ...obj.properties, ...v.properties };
+            }
           }
         } else {
           console.log('有类型的内连');
@@ -332,7 +357,58 @@ export const modelToFrScheme = (
       obj.properties[d.map_name] = r;
     }
   }
-  return obj;
+
+  return sortScheme(obj);
+};
+
+interface scheme {
+  displayType: string;
+  properties: Record<string, any>;
+  type: string;
+}
+
+export const sortScheme = (scheme: scheme) => {
+  let array = {} as any;
+  let obj = {} as any;
+  let other = {} as any;
+  for (const [key, value] of Object.entries(scheme?.properties)) {
+    switch (value?.type) {
+      case 'object':
+        obj[key] = value;
+        break;
+      case 'array':
+        array[key] = value;
+        break;
+      default:
+        other[key] = value;
+        break;
+    }
+  }
+
+  return {
+    ...scheme,
+    properties: {
+      ...other,
+      ...obj,
+      ...array,
+    },
+  };
+};
+
+export const schemeGetJson = (scheme: scheme) => {
+  let result = {} as any;
+
+  for (const [key, value] of Object.entries(scheme?.properties)) {
+    switch (value.type) {
+      case 'object':
+        result[key] = schemeGetJson(value);
+        break;
+      default:
+        result[key] = value?.default;
+    }
+  }
+
+  return result;
 };
 
 const isPlainObject = (obj: any) =>
@@ -365,6 +441,8 @@ export const flatKeyMatch = (formData: any) => {
   }
   return r;
 };
+
+//
 
 export const getPer = (
   modelName: string,

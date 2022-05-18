@@ -1,5 +1,4 @@
 import React, { useMemo, useRef } from 'react';
-import { fieldInfo } from '@/pages/model/table';
 import { Image, Table } from 'antd';
 import { customTagParse } from '@/utils/tools';
 import { TablePaginationConfig } from 'antd/lib/table/interface';
@@ -7,6 +6,7 @@ import openDrawerTable from '@/components/drawShowTable';
 import { openDrawerModelTable } from '@/components/drawerOpenTable';
 import { snakeCase } from 'lodash';
 import { getPer } from '@/pages/model/tools';
+import { fieldInfo } from '@/define/exp';
 
 export interface simpleTable {
   field_list: Array<fieldInfo>;

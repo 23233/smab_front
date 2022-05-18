@@ -47,3 +47,39 @@ export interface permission {
   put?: boolean;
   post?: boolean;
 }
+
+export interface fieldInfo {
+  name: string;
+  map_name: string;
+  full_name: string;
+  full_map_name: string;
+  params_key: string;
+  comment: string;
+  level: string;
+  kind: string;
+  bson: Array<string>;
+  json_tag: Array<string>;
+  types: string;
+  index: number;
+  is_pk: boolean;
+  is_obj_id: boolean;
+  is_created: boolean;
+  is_updated: boolean;
+  is_deleted: boolean;
+  is_default_wrap: boolean;
+  is_time: boolean;
+  is_geo: boolean;
+  is_mab_inline: boolean;
+  is_inline: boolean;
+  children: Array<fieldInfo>;
+  children_kind: string;
+  custom_tag: string;
+}
+
+export interface modelInfo {
+  map_name: string;
+  full_path: string;
+  alias: string;
+  field_list: Array<fieldInfo>;
+  flat_fields: Array<fieldInfo>;
+}

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { DatePicker, Switch } from 'antd';
-import Moment from 'moment';
 import { useMount } from 'ahooks';
 
 interface p {

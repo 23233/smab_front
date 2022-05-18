@@ -7,6 +7,7 @@ import { LogoutOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import BasicLayout from '@ant-design/pro-layout';
 
 import ChangePasswordModal from '../../components/changePassword';
+import CONFIG from '../../utils/config';
 
 export default function (props) {
   // console.log('layout props', props);
@@ -90,7 +91,7 @@ export default function (props) {
 
   return (
     <BasicLayout
-      title={window?.smab?.name}
+      title={CONFIG.getWindowData().name}
       {...props}
       breadcrumbRender={(routers = []) => [
         {

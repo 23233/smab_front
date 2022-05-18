@@ -129,7 +129,7 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
             description: '一定为json格式且符合调用规范',
             placeholder: '请输入表单配置',
             extra:
-              '<a href="https://x-render.gitee.io/tools/generator/playground" target="_blank">在线配置</a>',
+              '<a href="https://x-render.gitee.io/playground" target="_blank">在线配置</a>',
           },
         },
         displayType: 'row',
@@ -330,7 +330,7 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
           </Space>
           <Button
             type={'link'}
-            href={'https://x-render.gitee.io/tools/generator/playground'}
+            href={'https://x-render.gitee.io/playground'}
             target={'_blank'}
           >
             在线设计表单
