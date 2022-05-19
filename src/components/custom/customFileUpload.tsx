@@ -70,8 +70,8 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
             addonBefore={
               !!CONFIG.getWindowData().publicKey
                 ? props.schema?.thumbnail
-                  ? '预览'
-                  : '缩略'
+                  ? '缩略'
+                  : '原图'
                 : null
             }
             addonAfter={
