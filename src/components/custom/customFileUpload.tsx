@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useMount } from 'ahooks';
 import { Input } from 'antd';
 
@@ -19,6 +19,10 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
   const [v, setV] = useState<string>('');
   const [show, setShow] = useState<boolean>(false);
 
+  let name = useMemo(() => {
+    return new Date().getTime().toString();
+  }, []);
+
   const change = (r: string) => {
     setV(r);
     onChange && onChange(r);
@@ -32,23 +36,25 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
 
   const openDrawer = () => {
     console.log('打开图片上传', props);
-    setShow(true);
+    setShow(!show);
   };
 
   const getUploadSuccess = (data: any) => {
     console.log('获取上传图片结果', data);
     if (data?.event === 'file_upload') {
-      let last = data?.data?.urls?.pop();
-      if (!last) {
-        return;
+      let id = data?.unique;
+      if (id === name) {
+        let last = data?.data?.urls?.pop();
+        if (!last) {
+          return;
+        }
+        // 如果是预览图 则读取预览图
+        if (props.schema?.thumbnail) {
+          setV(last?.thumbnail);
+          return;
+        }
+        setV(last?.origin);
       }
-
-      // 如果是预览图 则读取预览图
-      if (data.scheme?.thumbnail) {
-        setV(last?.thumbnail);
-        return;
-      }
-      setV(last?.origin);
     }
   };
 
@@ -61,6 +67,13 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
             placeholder={'请输入图片url地址'}
             onChange={(e) => change(e.target.value)}
             allowClear
+            addonBefore={
+              !!CONFIG.getWindowData().publicKey
+                ? props.schema?.thumbnail
+                  ? '预览'
+                  : '缩略'
+                : null
+            }
             addonAfter={
               !!CONFIG.getWindowData().publicKey && (
                 <PictureOutlined title={'进行上传'} onClick={openDrawer} />
@@ -72,6 +85,7 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
         {show && (
           <div>
             <SsoPage
+              uniqueId={name}
               fullUri={`uploads/${CONFIG.getWindowData().publicKey}`}
               onSuccess={getUploadSuccess}
             />
