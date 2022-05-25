@@ -50,10 +50,10 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
         }
         // 如果是预览图 则读取预览图
         if (props.schema?.thumbnail) {
-          setV(last?.thumbnail);
+          change(last?.thumbnail);
           return;
         }
-        setV(last?.origin);
+        change(last?.origin);
       }
     }
   };
