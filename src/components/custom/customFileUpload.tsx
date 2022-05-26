@@ -20,7 +20,9 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
   const [show, setShow] = useState<boolean>(false);
 
   let name = useMemo(() => {
-    return new Date().getTime().toString();
+    const nl = props?.addons?.dataPath.split('.');
+    nl.pop();
+    return nl.join(',').replaceAll('[', '_').replaceAll(']', '_');
   }, []);
 
   const change = (r: string) => {
@@ -35,7 +37,7 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
   });
 
   const openDrawer = () => {
-    console.log('打开图片上传', props);
+    console.log('打开图片上传', props, name);
     setShow(!show);
   };
 
@@ -82,15 +84,14 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
             style={{ width: '100%' }}
           />
         </div>
-        {show && (
-          <div>
-            <SsoPage
-              uniqueId={name}
-              fullUri={`uploads/${CONFIG.getWindowData().publicKey}`}
-              onSuccess={getUploadSuccess}
-            />
-          </div>
-        )}
+        <div>
+          <SsoPage
+            show={show}
+            uniqueId={name}
+            fullUri={`uploads/${CONFIG.getWindowData().publicKey}`}
+            onSuccess={getUploadSuccess}
+          />
+        </div>
       </div>
     </React.Fragment>
   );

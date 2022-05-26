@@ -74,6 +74,7 @@ export const getSingleScheme = (
     };
   }
   if (d.is_geo) {
+    console.log('geo scheme 解析 ', initValue);
     return {
       title: title,
       type: 'object',
@@ -83,26 +84,23 @@ export const getSingleScheme = (
           type: 'string',
           enum: ['Point'],
           default: 'Point',
-          required: true,
           width: '50%',
         },
         coordinates: {
           title: '经纬度',
           type: 'array',
-          required: true,
+          min: 2,
+          max: 2,
           width: '50%',
           default: edit
-            ? [
-                { __flat: initValue?.coordinates?.[0] },
-                { __flat: initValue?.coordinates?.[1] },
-              ]
-            : undefined,
+            ? initValue?.coordinates
+            : [{ __flat: undefined }, { __flat: undefined }],
           items: {
             type: 'object',
             properties: {
               __flat: {
                 type: 'number',
-                placeholder: 'lat优先 lng跟上 只需要这两',
+                placeholder: 'lat优先(-180 - 180) lng(-85 - 85)',
               },
             },
           },
@@ -442,7 +440,32 @@ export const flatKeyMatch = (formData: any) => {
   return r;
 };
 
+export const objIsGeo = (jsonData: any) => {
+  return (
+    jsonData &&
+    jsonData.hasOwnProperty('type') &&
+    jsonData.hasOwnProperty('coordinates')
+  );
+};
+
 //
+export const geoAddFit = (formData: any) => {
+  let r = { ...formData };
+  for (const [key, value] of Object.entries(r)) {
+    // 如果是个对象
+    if (isPlainObject(value)) {
+      if (objIsGeo(value)) {
+        const v = value as Record<string, any>;
+        if (!v?.coordinates?.length) {
+          delete r[key];
+        }
+      } else {
+        r[key] = geoAddFit(value);
+      }
+    }
+  }
+  return r;
+};
 
 export const getPer = (
   modelName: string,

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 
 interface p {
+  show?: boolean;
   uniqueId: string;
   fullUri: string;
   className?: string;
@@ -9,6 +10,7 @@ interface p {
 
 // sso页面跳转
 const SsoPage: React.FC<p> = ({
+  show = true,
   uniqueId,
   fullUri,
   className,
@@ -32,15 +34,17 @@ const SsoPage: React.FC<p> = ({
 
   return (
     <React.Fragment>
-      <div className={className}>
-        <iframe
-          src={`https://resok.cn/${fullUri}?unique__id=${uniqueId}`}
-          frameBorder="0"
-          name={uniqueId}
-          width={'100%'}
-          height={'100%'}
-        />
-      </div>
+      {show && (
+        <div className={className}>
+          <iframe
+            src={`https://resok.cn/${fullUri}?unique__id=${uniqueId}`}
+            frameBorder="0"
+            name={uniqueId}
+            width={'100%'}
+            height={'100%'}
+          />
+        </div>
+      )}
     </React.Fragment>
   );
 };

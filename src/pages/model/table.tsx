@@ -39,6 +39,7 @@ import SimpleTable from '@/components/simpleTable';
 import openDrawerSchemeForm from '@/components/drawShowSchemeForm';
 import {
   flatKeyMatch,
+  geoAddFit,
   modelToFrScheme,
   schemeGetJson,
   sliceToObject,
@@ -365,7 +366,7 @@ const ModelTableView: React.FC<p> = ({
     const parseRecord = sliceToObject(record);
     console.log('转换后的行数据', parseRecord);
     const scheme = modelToFrScheme(
-      modelInfo?.field_list,
+      modelInfo?.field_list!,
       true,
       '',
       parseRecord,
@@ -379,11 +380,12 @@ const ModelTableView: React.FC<p> = ({
       title: `在${modelInfo?.alias || modelName}修改${id}行数据`,
       scheme: scheme,
       onSuccess: (formData) => {
-        const r = flatKeyMatch(formData);
         // 先进行内链元素的整理
 
-        const diff = jsonDiff(schemeInitJson, r, modelInfo?.flat_fields!);
-        console.log('修改后的数据', r);
+        const diff = flatKeyMatch(
+          jsonDiff(schemeInitJson, formData, modelInfo?.flat_fields!),
+        );
+        console.log('修改后的数据', formData);
         console.log('原始数据', schemeInitJson);
         console.log('diff', diff);
 
@@ -432,7 +434,7 @@ const ModelTableView: React.FC<p> = ({
       title: `新增` + modelInfo?.alias || modelName + '数据',
       scheme: scheme,
       onSuccess: (formData) => {
-        const r = flatKeyMatch(formData);
+        const r = geoAddFit(flatKeyMatch(formData));
         console.log('提交的数据', r);
         addSuccess(r);
       },

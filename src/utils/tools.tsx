@@ -1,4 +1,5 @@
 import { fieldInfo } from '@/define/exp';
+import { objIsGeo } from '@/pages/model/tools';
 
 export const objectToData = (data: object, prefix: string, limit?: string) => {
   if (!limit) {
@@ -24,20 +25,26 @@ export const customTagParse = (tagStr: string) => {
 };
 
 export const jsonDiff = (
-  a: Record<string, any>,
-  b: Record<string, any>,
+  init: Record<string, any>,
+  news: Record<string, any>,
   fields: Array<fieldInfo>,
 ) => {
-  if (!a || !b) {
+  if (!init || !news) {
     return null;
   }
+  // geo信息 如果表更则需要保留
+  if (objIsGeo(news)) {
+    if (!isEq(init?.coordinates, news?.coordinates)) {
+      return news;
+    }
+  }
   let result = {} as Record<string, any>;
-  for (const [key, value] of Object.entries(a)) {
+  for (const [key, value] of Object.entries(init)) {
     if (key === '_id') {
       continue;
     }
     // 判断值是否存在
-    const bv = b?.[key];
+    const bv = news?.[key];
     // 判断值类型是否可以继续迭代
     if (getVarType(value) == 'Object') {
       const v = jsonDiff(value, bv, fields);
