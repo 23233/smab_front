@@ -174,6 +174,7 @@ export const getSingleScheme = (
     r.type = 'string';
     r.widget = 'c_fk';
     r.fk = customTag.fk;
+    r.fk_map = customTag?.col;
   }
 
   return r;
@@ -233,6 +234,7 @@ export const getSliceScheme = (
   if (customTag?.fk) {
     r.items.properties.__flat.widget = 'c_fk';
     r.items.properties.__flat.fk = customTag.fk;
+    r.items.properties.__flat.fk_map = customTag?.col;
   }
 
   if (customTag?.t) {

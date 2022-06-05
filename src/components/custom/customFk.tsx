@@ -5,6 +5,7 @@ import { snakeCase } from 'lodash';
 import { FolderOpenOutlined } from '@ant-design/icons';
 import { openDrawerModelTable } from '@/components/drawerOpenTable';
 import { getPer } from '@/pages/model/tools';
+import { Tooltip } from 'antd';
 
 interface p {
   value?: any;
@@ -29,6 +30,16 @@ const CustomFk: React.FC<p> = ({ value, onChange, ...props }) => {
     }
   });
 
+  const getValue = (obj: Record<string, any>, k: string) => {
+    if (obj.hasOwnProperty(k)) {
+      return obj?.[k];
+    }
+    if (obj?.hasOwnProperty(snakeCase(k))) {
+      return obj?.[snakeCase(k)];
+    }
+    return undefined;
+  };
+
   const openDrawer = () => {
     console.log('打开选择', props?.schema?.fk);
     modalRef.current = openDrawerModelTable({
@@ -40,7 +51,29 @@ const CustomFk: React.FC<p> = ({ value, onChange, ...props }) => {
       ),
       onSelect: (record: any) => {
         console.log('外键选中了', record);
-        change(record?._id || record?.id || '');
+
+        const mapCol = props?.schema?.fk_map || '_id';
+        const mapList = mapCol.split('.');
+        let data = record;
+        let end = false;
+
+        for (let i = 0; i < mapList.length; i++) {
+          let k = mapList[i];
+          const v = getValue(data, k);
+          if (!v) {
+            break;
+          }
+          data = v;
+          if (i === mapList.length - 1) {
+            end = true;
+          }
+        }
+
+        if (end) {
+          const value = data || '';
+          change(value);
+        }
+
         modalRef.current?.destroy();
       },
     });
@@ -51,7 +84,11 @@ const CustomFk: React.FC<p> = ({ value, onChange, ...props }) => {
       <Input
         value={v}
         onChange={(e) => change(e.target.value)}
-        addonBefore={snakeCase(props?.schema?.fk)}
+        addonBefore={
+          <Tooltip title={`映射字段:${props?.schema?.fk_map || '_id'}`}>
+            {snakeCase(props?.schema?.fk)}
+          </Tooltip>
+        }
         addonAfter={
           <FolderOpenOutlined title={'进行选择'} onClick={openDrawer} />
         }

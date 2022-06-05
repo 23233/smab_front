@@ -48,8 +48,14 @@ const SimpleTable: React.FC<simpleTable> = ({
     });
   };
 
-  const openDrawer = (fkName: string, onSelectId: string) => {
-    console.log('表格打开外键信息', fkName);
+  const openDrawer = (fkName: string, mapCol: string, value: string) => {
+    console.log('表格打开外键信息', fkName, mapCol, value);
+
+    const mapKeys = mapCol
+      .split('.')
+      .map((d) => snakeCase(d))
+      .join('__');
+
     modalRef.current = openDrawerModelTable({
       name: snakeCase(fkName),
       permission: getPer(
@@ -58,7 +64,7 @@ const SimpleTable: React.FC<simpleTable> = ({
         (window as any)?.c_userInfo?.super,
       ),
       extraQuery: {
-        _id: onSelectId,
+        [mapKeys]: value,
       },
     });
   };
@@ -136,11 +142,13 @@ const SimpleTable: React.FC<simpleTable> = ({
 
     // 判断是否有外键
     if (t?.fk) {
+      console.log('渲染表格fk', t);
+      const fkMap = t?.col || '_id';
       return (
         <div
           style={{ color: '#52c41a', cursor: 'pointer' }}
-          title={'外键'}
-          onClick={() => openDrawer(t?.fk, value)}
+          title={`${t?.fk}外键 字段${fkMap}`}
+          onClick={() => openDrawer(t?.fk, fkMap, value)}
         >
           {inline()}
         </div>
@@ -177,7 +185,7 @@ const SimpleTable: React.FC<simpleTable> = ({
             render: (_: any, record: any) => {
               return (
                 <div style={{ width: 100 }}>
-                  {record?.[d.map_name] ? (
+                  {!!record?.[d.map_name] ? (
                     <div
                       onClick={() => showExtraTable(d, record?.[d.map_name])}
                       style={{ color: '#1288f6' }}
