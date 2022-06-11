@@ -12,7 +12,7 @@ import {
   TableColumnsType,
 } from 'antd';
 import Fetch from '@/utils/fetch';
-import { uniqBy } from 'lodash';
+import { groupBy, uniqBy } from 'lodash';
 import { useModel } from 'umi';
 import { action, task } from '@/define/exp';
 import useRealLocation from '@/components/useRealLocation';
@@ -25,7 +25,7 @@ import useGetAction from '@/pages/model/useGetAction';
 import DrawerSelectUserOne from '@/components/drawerSelectUser';
 import dayjs from 'dayjs';
 
-const { Option } = Select;
+const { Option, OptGroup } = Select;
 
 const { confirm } = Modal;
 
@@ -153,12 +153,17 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
           r.push({
             key: b?.alias,
             value: b?.title,
+            group: b?.group || '',
           });
         });
       }
     });
     return r;
   }, [userPer]);
+
+  const groupModel = useMemo(() => {
+    return groupBy(allModel, 'group');
+  }, [allModel]);
 
   const previewForm = (scheme: string) => {
     openDrawerSchemeForm({
@@ -318,11 +323,22 @@ const CustomActionPage: React.FC<p> = ({ ...props }) => {
               allowClear
               placeholder={'请选择模型'}
             >
-              {allModel.map((d, i) => {
+              {Object.keys(groupModel)?.map((d: any) => {
+                const items = groupModel[d];
                 return (
-                  <Option key={i} value={d.value} title={d.key}>
-                    {d.key}
-                  </Option>
+                  <OptGroup key={d}>
+                    {items?.map((b, i) => {
+                      return (
+                        <Option
+                          key={`${b.key}_${i}`}
+                          value={b.value}
+                          title={b.key}
+                        >
+                          {b.key}
+                        </Option>
+                      );
+                    })}
+                  </OptGroup>
                 );
               })}
             </Select>
