@@ -335,6 +335,10 @@ export const modelToFrScheme = (
             if (d.bson?.[0] != 'inline') {
               // bson:",inline"
               if (d.bson?.[0] == ',') {
+                console.warn(
+                  `${title} bson标签为默认名称 可能json解析会失败 最好删掉,号 仅使用inline`,
+                  d.bson,
+                );
                 r = modelToFrScheme(d.children, edit, d?.name, initValues);
               } else {
                 r = modelToFrScheme(d.children, edit, title, initValues);
