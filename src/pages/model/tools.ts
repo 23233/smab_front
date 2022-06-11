@@ -299,7 +299,7 @@ export const modelToFrScheme = (
       const v = modelToFrScheme(d.children, edit, '', initValues);
       obj.properties = { ...obj.properties, ...v.properties };
     } else {
-      const title = d.comment || d.map_name;
+      let title = d.comment || d.map_name;
       if (d.kind === 'slice') {
         // 数组[]struct
         if (d.children) {
@@ -324,16 +324,23 @@ export const modelToFrScheme = (
         if (d.is_geo) {
           r = getSingleScheme(d, edit, initValues?.[d.map_name]);
         } else if (d.is_inline) {
+          console.log('is_inline', d);
           // 如果指定了json标签 那么新增和修改必须变为json形式
-          if (d?.json_tag?.length) {
+          if (d?.json_tag?.length && !!d?.json_tag?.[0]) {
             r = modelToFrScheme(d.children, edit, title, initValues);
             obj.properties[d?.json_tag[0] || d.map_name] = r;
             continue;
           } else {
-            // 两种情况 bson:"inline" bson:"field,inline"
+            // 匹配两种情况 bson:",inline"  bson:"field,inline"
             if (d.bson?.[0] != 'inline') {
-              r = modelToFrScheme(d.children, edit, title, initValues);
+              // bson:",inline"
+              if (d.bson?.[0] == ',') {
+                r = modelToFrScheme(d.children, edit, d?.name, initValues);
+              } else {
+                r = modelToFrScheme(d.children, edit, title, initValues);
+              }
             } else {
+              // 匹配这个 bson:"inline"
               const v = modelToFrScheme(d.children, edit, title, initValues);
               obj.properties = { ...obj.properties, ...v.properties };
             }
