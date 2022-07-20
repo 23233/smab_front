@@ -23,7 +23,7 @@ function MicroAppLayout(props: any) {
       }}
       base={(window as any)?.routerBase + props?.match?.path}
       autoSetLoading // 设置自定义 loading 动画
-      loader={(loading) => (
+      loader={(loading: boolean) => (
         <Spin
           tip={`${item?.label || name} ${item?.entry}加载中`}
           spinning={loading}

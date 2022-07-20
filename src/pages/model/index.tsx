@@ -34,6 +34,8 @@ const V: React.FC<p> = ({ ...props }) => {
                 id: b.title,
                 label: b?.alias || b.title,
                 group: b?.group || '',
+                level: b?.level || 0,
+                group_level: b?.group_level || 0,
               });
             }
           });
@@ -62,7 +64,21 @@ const V: React.FC<p> = ({ ...props }) => {
 
   const tabs_group = useMemo(() => {
     if (tabs?.length) {
-      return groupBy(tabs, 'group');
+      // 根据组排序
+      const nt = tabs?.sort((a: any, b: any) => {
+        return b?.group_level - a?.group_level;
+      });
+      // 分组
+      const groupObj = groupBy(nt, 'group');
+      const r = {} as any;
+      Object.keys(groupObj).map((d) => {
+        // 组内排序
+        const v = groupObj[d]?.sort((a: any, b: any) => {
+          return b?.level - a?.level;
+        });
+        r[d] = v;
+      });
+      return r;
     }
     return {};
   }, [tabs]);
@@ -77,7 +93,7 @@ const V: React.FC<p> = ({ ...props }) => {
                 <div className="pr-2 text-sm text-gray-400">
                   {k || '未命名'}:
                 </div>
-                {tabs_group?.[k].map((d) => {
+                {tabs_group?.[k].map((d: any) => {
                   return (
                     <div
                       className={`p-1 px-2 text-md border-b-2 border-transparent ${

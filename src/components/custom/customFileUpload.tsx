@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useMount } from 'ahooks';
-import { Input } from 'antd';
+import { Input, Image } from 'antd';
 
 import { PictureOutlined } from '@ant-design/icons';
 
@@ -85,6 +85,7 @@ const CustomFileUpload: React.FC<p> = ({ value, onChange, ...props }) => {
           />
         </div>
         <div>
+          <Image src={value} style={{ maxHeight: 60 }} />
           <SsoPage
             show={show}
             uniqueId={name}

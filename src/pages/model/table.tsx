@@ -93,8 +93,8 @@ const ModelTableView: React.FC<p> = ({
   const [filter, setFilter] = useState<Array<any>>([]);
   const [docTotal, setDocTotal] = useState<number>();
   const [search, setSearch] = useState<string>();
-  const [sortMode, setSortMode] = useState<'_o' | '_od'>('_o');
-  const [sortField, setSortField] = useState<string>();
+  const [sortMode, setSortMode] = useState<'_o' | '_od'>('_od');
+  const [sortField, setSortField] = useState<string>('_id');
   const [selectField, setSelectField] = useState<string>();
   const [fieldValue, setFieldValue] = useState<string>('');
   const cover = useRef<boolean>(false);
@@ -500,12 +500,23 @@ const ModelTableView: React.FC<p> = ({
     <React.Fragment>
       <div className={'my-2'}>
         <Row justify={'start'} align={'middle'} gutter={8}>
-          <Col>{`模型共:${docTotal || 0}条`}</Col>
+          <Col>
+            <div>模型共:{docTotal || 0}条</div>
+            <div>当前是第{page || 1}页</div>
+          </Col>
+          <Col>
+            {permission?.post && <Button onClick={runAddBefore}>新增</Button>}
+            <Button onClick={runRefresh}>刷新</Button>
+          </Col>
           <Col>
             <div>
               <Select value={sortMode} onChange={setSortMode}>
-                <Option value={'_o'}>升序</Option>
-                <Option value={'_od'}>降序</Option>
+                <Option value={'_o'} title={'从小到大'}>
+                  升序
+                </Option>
+                <Option value={'_od'} title={'从大到小'}>
+                  降序
+                </Option>
               </Select>
               <Select
                 value={sortField}
@@ -516,10 +527,6 @@ const ModelTableView: React.FC<p> = ({
                 {sortFiles}
               </Select>
             </div>
-          </Col>
-          <Col>
-            {permission?.post && <Button onClick={runAddBefore}>新增</Button>}
-            <Button onClick={runRefresh}>刷新</Button>
           </Col>
           <Col>
             <Input.Search

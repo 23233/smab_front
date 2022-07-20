@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-import { Image, Table } from 'antd';
+import { Button, Image, Popover, Table } from 'antd';
 import { customTagParse } from '@/utils/tools';
 import { TablePaginationConfig } from 'antd/lib/table/interface';
 import openDrawerTable from '@/components/drawShowTable';
@@ -7,6 +7,9 @@ import { openDrawerModelTable } from '@/components/drawerOpenTable';
 import { snakeCase } from 'lodash';
 import { getPer } from '@/pages/model/tools';
 import { fieldInfo } from '@/define/exp';
+import { openDrawerMarkdown } from '@/components/drawerShowMarkdown';
+import dayjs from 'dayjs';
+import { SizeType } from 'antd/lib/config-provider/SizeContext';
 
 export interface simpleTable {
   field_list: Array<fieldInfo>;
@@ -16,6 +19,7 @@ export interface simpleTable {
   loading?: boolean;
   pagination?: TablePaginationConfig;
   customColumns?: Array<any>;
+  size?: SizeType;
 }
 
 const SimpleTable: React.FC<simpleTable> = ({
@@ -26,6 +30,7 @@ const SimpleTable: React.FC<simpleTable> = ({
   pagination,
   loading,
   customColumns = [],
+  size = 'middle',
   ...props
 }) => {
   const modalRef = useRef<any>();
@@ -49,12 +54,14 @@ const SimpleTable: React.FC<simpleTable> = ({
   };
 
   const openDrawer = (fkName: string, mapCol: string, value: string) => {
-    console.log('表格打开外键信息', fkName, mapCol, value);
-
-    const mapKeys = mapCol
-      .split('.')
-      .map((d) => snakeCase(d))
-      .join('__');
+    let mapKeys = mapCol;
+    if (mapCol.indexOf('.') >= 0) {
+      mapKeys = mapCol
+        .split('.')
+        .map((d) => snakeCase(d))
+        .join('__');
+    }
+    console.log('表格打开外键信息', fkName, mapCol, value, mapKeys);
 
     modalRef.current = openDrawerModelTable({
       name: snakeCase(fkName),
@@ -89,25 +96,29 @@ const SimpleTable: React.FC<simpleTable> = ({
             );
           });
         default:
-          return value?.map((vv: string, i: number) => {
-            return (
-              <div
-                key={i}
-                style={{
-                  border: '1px solid #eee',
-                  padding: '2px 5px',
-                  fontSize: 12,
-                  color: 'black',
-                  background: '#f1f1f1',
-                  borderRadius: 5,
-                  marginBottom: 5,
-                }}
-                title={vv}
-              >
-                {vv}
-              </div>
-            );
-          });
+          return (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              {value?.map((vv: string, i: number) => {
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      border: '1px solid #eee',
+                      padding: '2px 5px',
+                      fontSize: 12,
+                      color: 'black',
+                      background: '#f1f1f1',
+                      borderRadius: 5,
+                      marginBottom: 5,
+                    }}
+                    title={vv}
+                  >
+                    {vv}
+                  </div>
+                );
+              })}
+            </div>
+          );
       }
     }
 
@@ -130,6 +141,33 @@ const SimpleTable: React.FC<simpleTable> = ({
               referrerPolicy={'no-referrer'}
             />
           );
+        case 'markdown':
+          if (!value) {
+            return null;
+          }
+          return (
+            <div
+              style={{
+                fontSize: 12,
+                color: '#5b43bb',
+                cursor: 'pointer',
+                paddingBottom: 2,
+                borderBottom: '2px solid #eee',
+                textAlign: 'center',
+              }}
+              onClick={() =>
+                openDrawerMarkdown({
+                  content: value,
+                  title: `渲染${
+                    fields.comment || fields.map_name
+                  }的markdown内容`,
+                })
+              }
+              title={'渲染markdown'}
+            >
+              渲染markdown
+            </div>
+          );
       }
       // bool类型解析成0和1
       if (fields.kind === 'bool') {
@@ -142,7 +180,7 @@ const SimpleTable: React.FC<simpleTable> = ({
 
     // 判断是否有外键
     if (t?.fk) {
-      console.log('渲染表格fk', t);
+      // console.log('渲染表格fk', t);
       const fkMap = t?.col || '_id';
       return (
         <div
@@ -159,6 +197,7 @@ const SimpleTable: React.FC<simpleTable> = ({
 
   const parseCol = (l: Array<fieldInfo>) => {
     let r = [] as Array<any>;
+    let timeCol = [] as Array<any>;
     l.map((d) => {
       // 如果是默认模型上层 则遍历下层
       if (d.is_inline) {
@@ -166,14 +205,11 @@ const SimpleTable: React.FC<simpleTable> = ({
       }
       // 如果是时间也跳
       if (d.is_time) {
-        r.push({
-          title: d.comment || d.name,
-          dataIndex: d.map_name,
-          render: (text: string) => {
-            return (
-              <div style={{ width: 150, wordBreak: 'break-all' }}>{text}</div>
-            );
-          },
+        const title = d.comment || d.name;
+        const key = d.map_name;
+        timeCol.push({
+          title,
+          key,
         });
         return;
       }
@@ -253,6 +289,38 @@ const SimpleTable: React.FC<simpleTable> = ({
         },
       });
     });
+
+    if (timeCol.length) {
+      r.unshift({
+        title: '时间',
+        render: (_: any, record: any) => {
+          return (
+            <div style={{ width: 150, wordBreak: 'break-all' }}>
+              {timeCol.map((d: any) => {
+                const v = record?.[d.key];
+                return (
+                  <div key={d.key} className={''} style={{ fontSize: 12 }}>
+                    <span>{d.title}</span>
+                    <span>:</span>
+                    <Popover
+                      content={
+                        <div style={{ fontSize: 14 }}>
+                          <div>{v}</div>
+                          <div>{dayjs(v).format('YYYY-MM-DD HH:mm:ss')}</div>
+                        </div>
+                      }
+                    >
+                      {dayjs(v).fromNow()}
+                    </Popover>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        },
+      });
+    }
+
     return r;
   };
 
@@ -285,6 +353,7 @@ const SimpleTable: React.FC<simpleTable> = ({
         loading={loading}
         pagination={pagination}
         scroll={{ x: true }}
+        size={size}
       />
     </React.Fragment>
   );

@@ -56,7 +56,19 @@ const DrawerShowSchemeForm: React.FC<p> = ({
 
   return (
     <Drawer
-      title={title || '数据管理'}
+      title={
+        <div>
+          {title || '数据管理'}
+          <Button
+            type="primary"
+            onClick={form.submit}
+            size={'small'}
+            style={{ marginLeft: 5 }}
+          >
+            提交
+          </Button>
+        </div>
+      }
       visible={show}
       onClose={() => setShow(false)}
       destroyOnClose={true}

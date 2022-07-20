@@ -44,6 +44,10 @@ const DrawerMarkdown: React.FC<p> = ({
   title = '查看内容',
   ...props
 }) => {
+  if (!content) {
+    return null;
+  }
+
   const [show, setShow] = useState<boolean>(true);
 
   const c = content
