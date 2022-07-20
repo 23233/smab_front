@@ -218,22 +218,10 @@ const TaskPage = () => {
       sm_user_id: userInfo.id,
       sm_action_name: active.name,
     } as any;
-    if (active.built) {
-      let built;
-      try {
-        built = JSON.parse(active.built);
-      } catch (e) {
-        console.error('built json解析失败', e);
-        warning({
-          title: `${active.name}解析built json失败`,
-        });
-        return;
-      }
-      body.built = built;
-    }
-    if (active.scheme) {
+    if (!!formData) {
       body.form = formData;
     }
+
     // 发起请求
     const resp = await Req.post(active.req_uri, {
       data: body,
@@ -252,7 +240,7 @@ const TaskPage = () => {
 
   const activeClick = (active: actionItem, record: task) => {
     console.log('active点击', active);
-    if (active.scheme) {
+    if (active?.scheme) {
       let scheme;
       try {
         scheme = JSON.parse(active.scheme);

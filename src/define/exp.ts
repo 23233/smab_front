@@ -15,7 +15,6 @@ export interface defaultField {
 export interface actionItem {
   name: string;
   req_uri: string;
-  built?: string; // 内置数据 json str
   scheme?: string; // 表单数据 json str
 }
 
