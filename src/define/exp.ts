@@ -57,7 +57,9 @@ export interface fieldInfo {
   level: string;
   kind: string;
   bson: Array<string>;
+  bson_name: string;
   json_tag: Array<string>;
+  json_name: string;
   types: string;
   index: number;
   is_pk: boolean;

@@ -325,10 +325,10 @@ export const modelToFrScheme = (
           r = getSingleScheme(d, edit, initValues?.[d.map_name]);
         } else if (d.is_inline) {
           console.log('is_inline', d);
-          // 如果指定了json标签 那么新增和修改必须变为json形式
-          if (d?.json_tag?.length && !!d?.json_tag?.[0]) {
+          // 如果指定了json标签 那么新增和修改必须变为json形式`
+          if (d?.json_name) {
             r = modelToFrScheme(d.children, edit, title, initValues);
-            obj.properties[d?.json_tag[0] || d.map_name] = r;
+            obj.properties[d?.json_name] = r;
             continue;
           } else {
             // 匹配两种情况 bson:",inline"  bson:"field,inline"
@@ -365,7 +365,7 @@ export const modelToFrScheme = (
     }
 
     if (r) {
-      obj.properties[d.map_name] = r;
+      obj.properties[d.json_name || d.bson_name || d.name] = r;
     }
   }
 
