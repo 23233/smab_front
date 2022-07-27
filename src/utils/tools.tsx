@@ -24,6 +24,21 @@ export const customTagParse = (tagStr: string) => {
   return r;
 };
 
+export const isHidden = (
+  field: fieldInfo,
+  from: 'table' | 'form' | 'add' | 'edit',
+) => {
+  const t = customTagParse(field.custom_tag);
+  if (t.hasOwnProperty('hide')) {
+    const v = t.hide;
+    if (!v) {
+      return true;
+    }
+    return v == from;
+  }
+  return false;
+};
+
 export const jsonDiff = (
   init: Record<string, any>,
   news: Record<string, any>,

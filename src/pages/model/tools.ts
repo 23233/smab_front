@@ -1,6 +1,6 @@
 // 模型转换为json
 import { isArray } from 'lodash';
-import { customTagParse } from '@/utils/tools';
+import { customTagParse, isHidden } from '@/utils/tools';
 import { useModelRef } from '@/pages/model/useModelPer';
 import { fieldInfo } from '@/define/exp';
 
@@ -291,6 +291,10 @@ export const modelToFrScheme = (
     obj.title = title;
   }
   for (const d of fields) {
+    if (isHidden(d, 'form') || isHidden(d, edit ? 'edit' : 'add')) {
+      continue;
+    }
+
     let r: any;
     if (d.is_default_wrap) {
       if (!edit) {

@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { Button, Image, Popover, Table } from 'antd';
-import { customTagParse } from '@/utils/tools';
+import { customTagParse, isHidden } from '@/utils/tools';
 import { TablePaginationConfig } from 'antd/lib/table/interface';
 import openDrawerTable from '@/components/drawShowTable';
 import { openDrawerModelTable } from '@/components/drawerOpenTable';
@@ -198,7 +198,12 @@ const SimpleTable: React.FC<simpleTable> = ({
   const parseCol = (l: Array<fieldInfo>) => {
     let r = [] as Array<any>;
     let timeCol = [] as Array<any>;
+
     l.map((d) => {
+      if (isHidden(d, 'table')) {
+        return;
+      }
+
       // 如果是默认模型上层 则遍历下层
       if (d.is_inline) {
         return r.push(...parseCol(d?.children));
