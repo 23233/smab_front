@@ -369,7 +369,8 @@ export const modelToFrScheme = (
     }
 
     if (r) {
-      obj.properties[d.json_name || d.bson_name || d.name] = r;
+      const key = d.json_name || d.bson_name || d.name;
+      obj.properties[key] = r;
     }
   }
 

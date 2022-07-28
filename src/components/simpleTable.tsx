@@ -60,6 +60,10 @@ const SimpleTable: React.FC<simpleTable> = ({
         .split('.')
         .map((d) => snakeCase(d))
         .join('__');
+    } else {
+      if (mapCol != '_id') {
+        mapKeys = snakeCase(mapCol);
+      }
     }
     console.log('表格打开外键信息', fkName, mapCol, value, mapKeys);
 
